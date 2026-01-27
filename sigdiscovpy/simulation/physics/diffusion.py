@@ -16,7 +16,8 @@ For computational efficiency, we use the asymptotic approximation:
     c(r) ≈ A * exp(-r/λ) / √r
 """
 
-from typing import Dict, Optional, Tuple
+from typing import Optional
+
 import numpy as np
 
 from sigdiscovpy.simulation.config.dataclasses import DiffusionConfig
@@ -47,11 +48,7 @@ class DiffusionSolver:
     def __init__(self, config: DiffusionConfig):
         self.config = config
 
-    def calculate_lambda(
-        self,
-        n_receivers: float,
-        p_r: float = 1.0
-    ) -> float:
+    def calculate_lambda(self, n_receivers: float, p_r: float = 1.0) -> float:
         """
         Calculate characteristic diffusion length.
 
@@ -73,9 +70,7 @@ class DiffusionSolver:
         if n_eff <= 0:
             return np.inf
 
-        return np.sqrt(
-            self.config.D * self.config.Kd / (n_eff * self.config.k_max)
-        )
+        return np.sqrt(self.config.D * self.config.Kd / (n_eff * self.config.k_max))
 
     def solve(
         self,
@@ -83,9 +78,9 @@ class DiffusionSolver:
         sender_expression: np.ndarray,
         cell_positions: np.ndarray,
         n_receivers_density: float,
-        position_dict: Optional[Dict[str, np.ndarray]] = None,
+        position_dict: Optional[dict[str, np.ndarray]] = None,
         p_r: float = 1.0,
-    ) -> Tuple[np.ndarray, float]:
+    ) -> tuple[np.ndarray, float]:
         """
         Solve concentration field using superposition of point sources.
 
@@ -156,7 +151,7 @@ class DiffusionSolver:
         # Avoid division by zero at source location
         min_dist = 1e-3
 
-        for i, (pos, strength) in enumerate(zip(source_positions, source_strengths)):
+        for _i, (pos, strength) in enumerate(zip(source_positions, source_strengths)):
             source_factor = strength * self.config.secretion_rate
 
             # Vectorized distance computation
@@ -196,13 +191,13 @@ class DiffusionSolver:
             # Round to avoid floating point issues
             pos_key = (round(pos[0], 2), round(pos[1], 2))
             if pos_key not in unique_positions:
-                unique_positions[pos_key] = {'pos': pos, 'total_expr': 0.0}
-            unique_positions[pos_key]['total_expr'] += expr
+                unique_positions[pos_key] = {"pos": pos, "total_expr": 0.0}
+            unique_positions[pos_key]["total_expr"] += expr
 
         # Compute contribution from each unique position
         for pos_data in unique_positions.values():
-            source_pos = pos_data['pos']
-            total_factor = pos_data['total_expr'] * self.config.secretion_rate
+            source_pos = pos_data["pos"]
+            total_factor = pos_data["total_expr"] * self.config.secretion_rate
 
             distances = np.linalg.norm(cell_positions - source_pos, axis=1)
             distances = np.maximum(distances, min_dist)

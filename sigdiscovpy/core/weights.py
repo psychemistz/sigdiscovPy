@@ -10,9 +10,11 @@ Weight matrix formula:
     w(d) = exp(-(d/sigma)^2 / 2)  where sigma = radius / 3
 """
 
-from typing import Optional, Tuple, Union
+from typing import Optional, Union
+
 import numpy as np
 from scipy import sparse as sp_sparse
+
 from sigdiscovpy.gpu.backend import GPU_AVAILABLE
 
 
@@ -22,7 +24,7 @@ def _compute_distances_chunked(
     radius: float,
     inner_radius: float = 0.0,
     chunk_size: int = 5000,
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Compute pairwise distances within radius threshold using chunking.
 

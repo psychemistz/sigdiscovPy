@@ -6,7 +6,8 @@ All functions compute mean/std across ALL cells, not subsets.
 """
 
 import numpy as np
-from sigdiscovpy.gpu.backend import get_array_module, ensure_numpy
+
+from sigdiscovpy.gpu.backend import ensure_numpy, get_array_module
 
 
 def standardize_vector(x, use_gpu: bool = True) -> np.ndarray:

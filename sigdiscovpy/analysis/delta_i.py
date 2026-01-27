@@ -2,13 +2,14 @@
 Delta I computation for identifying distance-dependent spatial interactions.
 """
 
-from typing import Dict, List, Tuple, Optional
+from typing import Optional
+
 import numpy as np
 
 
 def compute_delta_i(
-    metrics_by_radius: Dict[float, np.ndarray],
-    radii: List[float],
+    metrics_by_radius: dict[float, np.ndarray],
+    radii: list[float],
     baseline_radius: Optional[float] = None,
 ) -> np.ndarray:
     """
@@ -52,11 +53,11 @@ def compute_delta_i(
 
 
 def compute_delta_i_profile(
-    metrics_by_radius: Dict[float, np.ndarray],
-    radii: List[float],
+    metrics_by_radius: dict[float, np.ndarray],
+    radii: list[float],
     gene_idx: int,
     factor_idx: int = 0,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Get metric profile across radii for a specific gene-factor pair.
 
@@ -77,17 +78,14 @@ def compute_delta_i_profile(
         (radii_array, metrics_array) for plotting.
     """
     radii_sorted = np.array(sorted(radii))
-    metrics = np.array([
-        metrics_by_radius[r][factor_idx, gene_idx]
-        for r in radii_sorted
-    ])
+    metrics = np.array([metrics_by_radius[r][factor_idx, gene_idx] for r in radii_sorted])
 
     return radii_sorted, metrics
 
 
 def find_peak_radius(
-    metrics_by_radius: Dict[float, np.ndarray],
-    radii: List[float],
+    metrics_by_radius: dict[float, np.ndarray],
+    radii: list[float],
     factor_idx: int = 0,
 ) -> np.ndarray:
     """
@@ -110,10 +108,7 @@ def find_peak_radius(
     radii_sorted = sorted(radii)
 
     # Stack metrics: (n_radii, n_genes)
-    all_metrics = np.stack([
-        metrics_by_radius[r][factor_idx, :]
-        for r in radii_sorted
-    ], axis=0)
+    all_metrics = np.stack([metrics_by_radius[r][factor_idx, :] for r in radii_sorted], axis=0)
 
     # Find argmax for each gene
     peak_idx = np.nanargmax(all_metrics, axis=0)
@@ -123,8 +118,8 @@ def find_peak_radius(
 
 
 def classify_interaction_type(
-    metrics_by_radius: Dict[float, np.ndarray],
-    radii: List[float],
+    metrics_by_radius: dict[float, np.ndarray],
+    radii: list[float],
     gene_idx: int,
     factor_idx: int = 0,
     threshold: float = 0.1,
@@ -150,9 +145,7 @@ def classify_interaction_type(
     str
         Interaction type: "short-range", "long-range", "bidirectional", or "none"
     """
-    radii_sorted, metrics = compute_delta_i_profile(
-        metrics_by_radius, radii, gene_idx, factor_idx
-    )
+    radii_sorted, metrics = compute_delta_i_profile(metrics_by_radius, radii, gene_idx, factor_idx)
 
     # Mask NaN values
     valid = ~np.isnan(metrics)

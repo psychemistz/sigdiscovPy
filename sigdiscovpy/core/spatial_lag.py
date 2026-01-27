@@ -9,6 +9,7 @@ This is the core operation for spatial correlation analysis.
 
 import numpy as np
 from scipy import sparse as sp_sparse
+
 from sigdiscovpy.gpu.backend import GPU_AVAILABLE, ensure_numpy
 
 

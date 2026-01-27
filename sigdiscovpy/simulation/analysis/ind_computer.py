@@ -6,24 +6,25 @@ spatial correlation functions, ensuring consistent computation between
 simulated and real data analysis.
 """
 
-from typing import List, Tuple, Optional
+from typing import Optional
+
 import numpy as np
 from scipy import spatial
 
-from sigdiscovpy.simulation.config.dataclasses import (
-    AnalysisConfig,
-    WeightType,
-)
+from sigdiscovpy.core.metrics import compute_ind_from_lag
 
 # Import core sigdiscovpy functions
 from sigdiscovpy.core.normalization import standardize_matrix
+from sigdiscovpy.core.spatial_lag import compute_spatial_lag
 from sigdiscovpy.core.weights import (
     create_gaussian_weights,
     create_ring_weights,
     row_normalize_weights,
 )
-from sigdiscovpy.core.spatial_lag import compute_spatial_lag
-from sigdiscovpy.core.metrics import compute_ind_from_lag
+from sigdiscovpy.simulation.config.dataclasses import (
+    AnalysisConfig,
+    WeightType,
+)
 
 
 class INDComputer:
@@ -62,7 +63,7 @@ class INDComputer:
         factor_expr: np.ndarray,
         response_expr: np.ndarray,
         radius: float,
-    ) -> Tuple[float, int]:
+    ) -> tuple[float, int]:
         """
         Compute I_ND at a single radius using sigdiscovpy core.
 
@@ -97,13 +98,11 @@ class INDComputer:
         """
         if self.config.use_sigdiscov_core:
             return self._compute_with_core(
-                sender_indices, receiver_indices, all_positions,
-                factor_expr, response_expr, radius
+                sender_indices, receiver_indices, all_positions, factor_expr, response_expr, radius
             )
         else:
             return self._compute_simple(
-                sender_indices, receiver_indices, all_positions,
-                factor_expr, response_expr, radius
+                sender_indices, receiver_indices, all_positions, factor_expr, response_expr, radius
             )
 
     def _compute_with_core(
@@ -114,7 +113,7 @@ class INDComputer:
         factor_expr: np.ndarray,
         response_expr: np.ndarray,
         radius: float,
-    ) -> Tuple[float, int]:
+    ) -> tuple[float, int]:
         """Compute I_ND using sigdiscovpy core functions."""
         # Step 1: Global normalization (CRITICAL)
         # Stack as 2 x n_cells matrix, normalize gene-wise
@@ -158,7 +157,7 @@ class INDComputer:
         factor_expr: np.ndarray,
         response_expr: np.ndarray,
         radius: float,
-    ) -> Tuple[float, int]:
+    ) -> tuple[float, int]:
         """
         Simple I_ND computation (fallback/reference implementation).
 
@@ -297,8 +296,8 @@ class INDComputer:
         all_positions: np.ndarray,
         factor_expr: np.ndarray,
         response_expr: np.ndarray,
-        radii: Optional[List[float]] = None,
-    ) -> List[dict]:
+        radii: Optional[list[float]] = None,
+    ) -> list[dict]:
         """
         Compute I_ND at multiple radii.
 
@@ -320,13 +319,14 @@ class INDComputer:
         results = []
         for radius in radii:
             i_nd, n_conn = self.compute(
-                sender_indices, receiver_indices, all_positions,
-                factor_expr, response_expr, radius
+                sender_indices, receiver_indices, all_positions, factor_expr, response_expr, radius
             )
-            results.append({
-                'radius': radius,
-                'I_ND': i_nd,
-                'n_connections': n_conn,
-            })
+            results.append(
+                {
+                    "radius": radius,
+                    "I_ND": i_nd,
+                    "n_connections": n_conn,
+                }
+            )
 
         return results

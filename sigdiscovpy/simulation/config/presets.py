@@ -6,8 +6,8 @@ use case, from basic validation to realistic biological scenarios.
 """
 
 from sigdiscovpy.simulation.config.dataclasses import (
-    SimulationConfig,
     SenderPositionMode,
+    SimulationConfig,
     WeightType,
 )
 
@@ -266,24 +266,24 @@ class SimulationPresets:
             If the preset name is not recognized.
         """
         presets = {
-            'default': cls.default,
-            'strong_signal': cls.strong_signal,
-            'weak_signal': cls.weak_signal,
-            'high_noise': cls.high_noise,
-            'low_noise': cls.low_noise,
-            'large_scale': cls.large_scale,
-            'small_scale': cls.small_scale,
-            'long_range': cls.long_range,
-            'short_range': cls.short_range,
-            'stochastic_full': cls.stochastic_full,
-            'multi_position': cls.multi_position,
-            'fixed_5_positions': cls.fixed_5_positions,
-            'annular_weights': cls.annular_weights,
-            'gaussian_weights': cls.gaussian_weights,
+            "default": cls.default,
+            "strong_signal": cls.strong_signal,
+            "weak_signal": cls.weak_signal,
+            "high_noise": cls.high_noise,
+            "low_noise": cls.low_noise,
+            "large_scale": cls.large_scale,
+            "small_scale": cls.small_scale,
+            "long_range": cls.long_range,
+            "short_range": cls.short_range,
+            "stochastic_full": cls.stochastic_full,
+            "multi_position": cls.multi_position,
+            "fixed_5_positions": cls.fixed_5_positions,
+            "annular_weights": cls.annular_weights,
+            "gaussian_weights": cls.gaussian_weights,
         }
 
         if name not in presets:
-            available = ', '.join(sorted(presets.keys()))
+            available = ", ".join(sorted(presets.keys()))
             raise ValueError(f"Unknown preset: '{name}'. Available: {available}")
 
         return presets[name]()
@@ -292,18 +292,18 @@ class SimulationPresets:
     def list_presets(cls) -> list:
         """List all available preset names."""
         return [
-            'default',
-            'strong_signal',
-            'weak_signal',
-            'high_noise',
-            'low_noise',
-            'large_scale',
-            'small_scale',
-            'long_range',
-            'short_range',
-            'stochastic_full',
-            'multi_position',
-            'fixed_5_positions',
-            'annular_weights',
-            'gaussian_weights',
+            "default",
+            "strong_signal",
+            "weak_signal",
+            "high_noise",
+            "low_noise",
+            "large_scale",
+            "small_scale",
+            "long_range",
+            "short_range",
+            "stochastic_full",
+            "multi_position",
+            "fixed_5_positions",
+            "annular_weights",
+            "gaussian_weights",
         ]

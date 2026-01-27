@@ -7,25 +7,21 @@ transcriptomics data with known ground truth for method validation.
 
 import logging
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any
 
 import numpy as np
 import pandas as pd
 
+from sigdiscovpy.simulation.analysis.ind_computer import INDComputer
 from sigdiscovpy.simulation.config.dataclasses import SimulationConfig
 from sigdiscovpy.simulation.domain.spatial import (
-    SpatialDomain,
     SenderPositionGenerator,
+    SpatialDomain,
 )
-from sigdiscovpy.simulation.physics.diffusion import DiffusionSolver
 from sigdiscovpy.simulation.expression.stochastic import ExpressionGenerator
-from sigdiscovpy.simulation.analysis.ind_computer import INDComputer
+from sigdiscovpy.simulation.physics.diffusion import DiffusionSolver
 
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -58,20 +54,17 @@ class UnifiedSimulation:
 
         # Initialize components
         self.domain = SpatialDomain(config.domain)
-        self.position_gen = SenderPositionGenerator(
-            config.position, config.domain
-        )
+        self.position_gen = SenderPositionGenerator(config.position, config.domain)
         self.diffusion = DiffusionSolver(config.diffusion)
         self.expression = ExpressionGenerator(
-            config.expression, config.stochastic,
-            seed=config.domain.random_seed
+            config.expression, config.stochastic, seed=config.domain.random_seed
         )
         self.ind_computer = INDComputer(config.analysis, use_gpu=use_gpu)
 
         # Random generator
         self._rng = np.random.default_rng(config.domain.random_seed)
 
-    def run(self) -> Dict[float, Dict]:
+    def run(self) -> dict[float, dict]:
         """
         Run simulation for all receiver fractions.
 
@@ -98,8 +91,7 @@ class UnifiedSimulation:
 
         # Assign sender cells
         n_senders = (
-            self.config.cell_types.n_active_senders +
-            self.config.cell_types.n_silent_senders
+            self.config.cell_types.n_active_senders + self.config.cell_types.n_silent_senders
         )
         n_active = self.config.cell_types.n_active_senders
 
@@ -124,7 +116,7 @@ class UnifiedSimulation:
         if self.config.output_dir:
             output_path = Path(self.config.output_dir)
             output_path.mkdir(parents=True, exist_ok=True)
-            self.config.save(str(output_path / 'config.json'))
+            self.config.save(str(output_path / "config.json"))
 
         results = {}
 
@@ -132,9 +124,14 @@ class UnifiedSimulation:
             logger.info(f"\nProcessing {frac*100:.0f}% Receivers...")
 
             result = self._run_single_fraction(
-                frac, all_positions, all_indices,
-                sender_indices, active_indices, silent_indices,
-                position_dict, assignments
+                frac,
+                all_positions,
+                all_indices,
+                sender_indices,
+                active_indices,
+                silent_indices,
+                position_dict,
+                assignments,
             )
             results[frac] = result
 
@@ -156,18 +153,16 @@ class UnifiedSimulation:
         sender_indices: np.ndarray,
         active_indices: np.ndarray,
         silent_indices: np.ndarray,
-        position_dict: Dict[str, np.ndarray],
-        assignments: Dict[str, int],
-    ) -> Dict[str, Any]:
+        position_dict: dict[str, np.ndarray],
+        assignments: dict[str, int],
+    ) -> dict[str, Any]:
         """Run simulation for a single receiver fraction."""
         n_cells = len(all_positions)
 
         # Assign receiver cells
         non_sender_indices = np.setdiff1d(all_indices, sender_indices)
         n_receivers = int(n_cells * frac)
-        receiver_indices = self._rng.choice(
-            non_sender_indices, n_receivers, replace=False
-        )
+        receiver_indices = self._rng.choice(non_sender_indices, n_receivers, replace=False)
 
         # Generate factor expression
         n_active = len(active_indices)
@@ -188,14 +183,12 @@ class UnifiedSimulation:
             all_positions,
             n_density,
             position_dict,
-            self.config.stochastic.p_receiver_respond_max
+            self.config.stochastic.p_receiver_respond_max,
         )
 
         # Generate response expression
         response_expr, responding_mask, response_probs = (
-            self.expression.generate_response_expression(
-                n_cells, receiver_indices, concentrations
-            )
+            self.expression.generate_response_expression(n_cells, receiver_indices, concentrations)
         )
 
         n_responding = np.sum(responding_mask)
@@ -204,61 +197,62 @@ class UnifiedSimulation:
 
         # Compute I_ND curve
         ind_curve = self.ind_computer.compute_at_radii(
-            sender_indices, receiver_indices, all_positions,
-            factor_expr, response_expr
+            sender_indices, receiver_indices, all_positions, factor_expr, response_expr
         )
 
         return {
-            'lambda': lambda_val,
-            'ind_curve': ind_curve,
-            'n_expressing': int(n_expressing),
-            'n_responding': int(n_responding),
-            'assignments': dict(assignments),
-            'n_senders': len(sender_indices),
-            'n_receivers': n_receivers,
+            "lambda": lambda_val,
+            "ind_curve": ind_curve,
+            "n_expressing": int(n_expressing),
+            "n_responding": int(n_responding),
+            "assignments": dict(assignments),
+            "n_senders": len(sender_indices),
+            "n_receivers": n_receivers,
         }
 
-    def _save_results(self, results: Dict[float, Dict]) -> None:
+    def _save_results(self, results: dict[float, dict]) -> None:
         """Save results to output directory."""
         output_path = Path(self.config.output_dir)
 
         # I_ND curves as CSV
         all_rows = []
         for frac, data in results.items():
-            for point in data['ind_curve']:
-                all_rows.append({
-                    'receiver_fraction': frac,
-                    'radius': point['radius'],
-                    'I_ND': point['I_ND'],
-                    'n_connections': point['n_connections'],
-                    'lambda': data['lambda'],
-                })
+            for point in data["ind_curve"]:
+                all_rows.append(
+                    {
+                        "receiver_fraction": frac,
+                        "radius": point["radius"],
+                        "I_ND": point["I_ND"],
+                        "n_connections": point["n_connections"],
+                        "lambda": data["lambda"],
+                    }
+                )
 
         if all_rows:
             df = pd.DataFrame(all_rows)
-            df.to_csv(output_path / 'ind_results.csv', index=False)
+            df.to_csv(output_path / "ind_results.csv", index=False)
 
         # Summary
         summary = []
         for frac, data in results.items():
-            summary.append({
-                'receiver_fraction': frac,
-                'lambda': data['lambda'],
-                'n_expressing': data['n_expressing'],
-                'n_responding': data['n_responding'],
-                'n_senders': data['n_senders'],
-                'n_receivers': data['n_receivers'],
-            })
+            summary.append(
+                {
+                    "receiver_fraction": frac,
+                    "lambda": data["lambda"],
+                    "n_expressing": data["n_expressing"],
+                    "n_responding": data["n_responding"],
+                    "n_senders": data["n_senders"],
+                    "n_receivers": data["n_receivers"],
+                }
+            )
 
         if summary:
-            pd.DataFrame(summary).to_csv(
-                output_path / 'simulation_summary.csv', index=False
-            )
+            pd.DataFrame(summary).to_csv(output_path / "simulation_summary.csv", index=False)
 
     def run_single(
         self,
         receiver_fraction: float = 0.2,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Run simulation for a single receiver fraction.
 
@@ -299,9 +293,7 @@ class UnifiedSimulation:
         # Receivers
         non_sender_indices = np.setdiff1d(all_indices, sender_indices)
         n_receivers = int(n_cells * receiver_fraction)
-        receiver_indices = self._rng.choice(
-            non_sender_indices, n_receivers, replace=False
-        )
+        receiver_indices = self._rng.choice(non_sender_indices, n_receivers, replace=False)
 
         # Expression
         factor_expr, expressing_mask = self.expression.generate_factor_expression(
@@ -317,7 +309,7 @@ class UnifiedSimulation:
             factor_expr[sender_indices],
             all_positions,
             n_density,
-            position_dict
+            position_dict,
         )
 
         # Response
@@ -327,22 +319,21 @@ class UnifiedSimulation:
 
         # I_ND curve
         ind_curve = self.ind_computer.compute_at_radii(
-            sender_indices, receiver_indices, all_positions,
-            factor_expr, response_expr
+            sender_indices, receiver_indices, all_positions, factor_expr, response_expr
         )
 
         return {
-            'positions': all_positions,
-            'position_dict': position_dict,
-            'sender_indices': sender_indices,
-            'receiver_indices': receiver_indices,
-            'active_indices': active_indices,
-            'silent_indices': silent_indices,
-            'factor_expr': factor_expr,
-            'response_expr': response_expr,
-            'concentrations': concentrations,
-            'lambda': lambda_val,
-            'ind_curve': ind_curve,
-            'expressing_mask': expressing_mask,
-            'responding_mask': responding_mask,
+            "positions": all_positions,
+            "position_dict": position_dict,
+            "sender_indices": sender_indices,
+            "receiver_indices": receiver_indices,
+            "active_indices": active_indices,
+            "silent_indices": silent_indices,
+            "factor_expr": factor_expr,
+            "response_expr": response_expr,
+            "concentrations": concentrations,
+            "lambda": lambda_val,
+            "ind_curve": ind_curve,
+            "expressing_mask": expressing_mask,
+            "responding_mask": responding_mask,
         }

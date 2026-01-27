@@ -23,24 +23,23 @@ __version__ = "0.1.0"
 __author__ = "Seongyong Park"
 
 # Core functions - lazy imports for faster startup
-from sigdiscovpy.core.normalization import standardize_matrix, standardize_vector
+# Analysis functions
+from sigdiscovpy.analysis.pairwise_moran import pairwise_moran
 from sigdiscovpy.core.metrics import (
-    compute_moran_from_lag,
     compute_ind_from_lag,
     compute_metric_batch,
+    compute_moran_from_lag,
 )
+from sigdiscovpy.core.normalization import standardize_matrix, standardize_vector
+from sigdiscovpy.core.spatial_lag import compute_spatial_lag, compute_spatial_lag_batch
 from sigdiscovpy.core.weights import (
     create_gaussian_weights,
     create_ring_weights,
     row_normalize_weights,
 )
-from sigdiscovpy.core.spatial_lag import compute_spatial_lag, compute_spatial_lag_batch
-
-# Analysis functions
-from sigdiscovpy.analysis.pairwise_moran import pairwise_moran
 
 # GPU backend
-from sigdiscovpy.gpu.backend import get_array_module, GPU_AVAILABLE
+from sigdiscovpy.gpu.backend import GPU_AVAILABLE, get_array_module
 
 __all__ = [
     # Version

@@ -2,18 +2,19 @@
 HDF5 I/O utilities for storing and loading analysis results.
 """
 
-from typing import Dict, List, Optional, Any
-import numpy as np
 from pathlib import Path
+from typing import Any, Optional
+
+import numpy as np
 
 
 def save_results_hdf5(
     path: str,
-    matrices: Dict[str, np.ndarray],
-    metadata: Optional[Dict[str, Any]] = None,
-    gene_names: Optional[List[str]] = None,
-    cell_types: Optional[List[str]] = None,
-    radii: Optional[List[float]] = None,
+    matrices: dict[str, np.ndarray],
+    metadata: Optional[dict[str, Any]] = None,
+    gene_names: Optional[list[str]] = None,
+    cell_types: Optional[list[str]] = None,
+    radii: Optional[list[float]] = None,
     compression: str = "gzip",
     compression_level: int = 4,
 ) -> None:
@@ -89,7 +90,7 @@ def save_results_hdf5(
             f.create_dataset("radii", data=np.array(radii))
 
 
-def load_results_hdf5(path: str) -> Dict[str, Any]:
+def load_results_hdf5(path: str) -> dict[str, Any]:
     """
     Load analysis results from HDF5 file.
 
@@ -165,8 +166,8 @@ class HDF5ResultWriter:
         path: str,
         n_genes: int,
         n_radii: int,
-        gene_names: Optional[List[str]] = None,
-        radii: Optional[List[float]] = None,
+        gene_names: Optional[list[str]] = None,
+        radii: Optional[list[float]] = None,
         dtype: np.dtype = np.float32,
         compression: str = "gzip",
     ):

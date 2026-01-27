@@ -9,8 +9,10 @@ These functions operate on pre-computed spatial lags for efficiency.
 """
 
 from typing import Literal
+
 import numpy as np
-from sigdiscovpy.gpu.backend import get_array_module, ensure_numpy
+
+from sigdiscovpy.gpu.backend import ensure_numpy, get_array_module
 
 
 def _validate_vectors(z_f, lag_g, func_name: str):

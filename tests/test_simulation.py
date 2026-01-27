@@ -3,25 +3,24 @@ Tests for the simulation module.
 """
 
 import numpy as np
-import pytest
 
+from sigdiscovpy.simulation.analysis.ind_computer import INDComputer
 from sigdiscovpy.simulation.config.dataclasses import (
-    SimulationConfig,
-    DomainConfig,
-    CellTypeConfig,
-    PositionConfig,
-    DiffusionConfig,
-    ExpressionConfig,
-    StochasticConfig,
     AnalysisConfig,
-    WeightType,
+    CellTypeConfig,
+    DiffusionConfig,
+    DomainConfig,
+    ExpressionConfig,
+    PositionConfig,
     SenderPositionMode,
+    SimulationConfig,
+    StochasticConfig,
+    WeightType,
 )
 from sigdiscovpy.simulation.config.presets import SimulationPresets
-from sigdiscovpy.simulation.domain.spatial import SpatialDomain, SenderPositionGenerator
-from sigdiscovpy.simulation.physics.diffusion import DiffusionSolver
+from sigdiscovpy.simulation.domain.spatial import SenderPositionGenerator, SpatialDomain
 from sigdiscovpy.simulation.expression.stochastic import ExpressionGenerator
-from sigdiscovpy.simulation.analysis.ind_computer import INDComputer
+from sigdiscovpy.simulation.physics.diffusion import DiffusionSolver
 from sigdiscovpy.simulation.runner import UnifiedSimulation
 
 
@@ -36,9 +35,7 @@ class TestSimulationConfig:
 
     def test_celltype_config(self):
         config = CellTypeConfig(
-            n_active_senders=20,
-            n_silent_senders=5,
-            receiver_fractions=[0.1, 0.2, 0.3]
+            n_active_senders=20, n_silent_senders=5, receiver_fractions=[0.1, 0.2, 0.3]
         )
         assert config.n_active_senders == 20
         assert len(config.receiver_fractions) == 3
@@ -186,9 +183,7 @@ class TestSenderPositionGenerator:
             "pos2": np.array([100, 100]),
         }
 
-        assignments, pos_list = SenderPositionGenerator.distribute_senders(
-            10, position_dict, rng
-        )
+        assignments, pos_list = SenderPositionGenerator.distribute_senders(10, position_dict, rng)
 
         assert sum(assignments.values()) == 10
         assert len(pos_list) == 10
@@ -281,9 +276,7 @@ class TestExpressionGenerator:
         stoch_config = StochasticConfig()
         generator = ExpressionGenerator(expr_config, stoch_config, seed=42)
 
-        expr = generator.generate_noise_only(
-            n_total=100, base_expression=5.0, sigma=0.5
-        )
+        expr = generator.generate_noise_only(n_total=100, base_expression=5.0, sigma=0.5)
 
         assert expr.shape == (100,)
         assert np.all(expr > 0)
@@ -308,15 +301,14 @@ class TestINDComputer:
         response_expr = rng.lognormal(0, 1, n_cells)
 
         results = computer.compute_at_radii(
-            sender_indices, receiver_indices, positions,
-            factor_expr, response_expr
+            sender_indices, receiver_indices, positions, factor_expr, response_expr
         )
 
         assert len(results) == 3
         for r in results:
-            assert 'radius' in r
-            assert 'I_ND' in r
-            assert 'n_connections' in r
+            assert "radius" in r
+            assert "I_ND" in r
+            assert "n_connections" in r
 
     def test_ind_bounded(self):
         config = AnalysisConfig(radii=[100])
@@ -333,11 +325,10 @@ class TestINDComputer:
         response_expr = rng.lognormal(0, 1, n_cells)
 
         results = computer.compute_at_radii(
-            sender_indices, receiver_indices, positions,
-            factor_expr, response_expr
+            sender_indices, receiver_indices, positions, factor_expr, response_expr
         )
 
-        i_nd = results[0]['I_ND']
+        i_nd = results[0]["I_ND"]
         # I_ND should be bounded between -1 and 1
         assert -1.0 <= i_nd <= 1.0
 
@@ -354,15 +345,15 @@ class TestUnifiedSimulation:
         sim = UnifiedSimulation(config)
         result = sim.run_single(receiver_fraction=0.2)
 
-        assert 'positions' in result
-        assert 'sender_indices' in result
-        assert 'receiver_indices' in result
-        assert 'factor_expr' in result
-        assert 'response_expr' in result
-        assert 'ind_curve' in result
-        assert 'lambda' in result
+        assert "positions" in result
+        assert "sender_indices" in result
+        assert "receiver_indices" in result
+        assert "factor_expr" in result
+        assert "response_expr" in result
+        assert "ind_curve" in result
+        assert "lambda" in result
 
-        assert len(result['ind_curve']) == 2
+        assert len(result["ind_curve"]) == 2
 
     def test_simulation_reproducibility(self):
         config1 = SimulationPresets.small_scale()
@@ -381,8 +372,8 @@ class TestUnifiedSimulation:
         result1 = sim1.run_single(receiver_fraction=0.2)
         result2 = sim2.run_single(receiver_fraction=0.2)
 
-        np.testing.assert_array_equal(result1['positions'], result2['positions'])
-        np.testing.assert_array_equal(result1['sender_indices'], result2['sender_indices'])
+        np.testing.assert_array_equal(result1["positions"], result2["positions"])
+        np.testing.assert_array_equal(result1["sender_indices"], result2["sender_indices"])
 
     def test_ind_curve_structure(self):
         config = SimulationPresets.small_scale()
@@ -392,13 +383,13 @@ class TestUnifiedSimulation:
         sim = UnifiedSimulation(config)
         result = sim.run_single(receiver_fraction=0.2)
 
-        ind_curve = result['ind_curve']
+        ind_curve = result["ind_curve"]
         assert len(ind_curve) == 4
 
         for i, point in enumerate(ind_curve):
-            assert point['radius'] == config.analysis.radii[i]
-            assert isinstance(point['I_ND'], (int, float))
-            assert isinstance(point['n_connections'], int)
+            assert point["radius"] == config.analysis.radii[i]
+            assert isinstance(point["I_ND"], (int, float))
+            assert isinstance(point["n_connections"], int)
 
 
 class TestIntegration:
@@ -418,11 +409,11 @@ class TestIntegration:
         assert 0.1 in results
         assert 0.2 in results
 
-        for frac, data in results.items():
-            assert 'lambda' in data
-            assert 'ind_curve' in data
-            assert 'n_expressing' in data
-            assert 'n_responding' in data
+        for _frac, data in results.items():
+            assert "lambda" in data
+            assert "ind_curve" in data
+            assert "n_expressing" in data
+            assert "n_responding" in data
 
     def test_signal_strength_correlation(self):
         """Test that stronger signal produces higher I_ND."""
@@ -446,5 +437,5 @@ class TestIntegration:
 
         # Strong signal should generally produce higher absolute I_ND
         # (though this is stochastic, so we just check both run successfully)
-        assert result_strong['ind_curve'][0]['I_ND'] is not None
-        assert result_weak['ind_curve'][0]['I_ND'] is not None
+        assert result_strong["ind_curve"][0]["I_ND"] is not None
+        assert result_weak["ind_curve"][0]["I_ND"] is not None

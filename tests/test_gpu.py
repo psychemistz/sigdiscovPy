@@ -11,15 +11,11 @@ import pytest
 from sigdiscovpy.gpu.backend import GPU_AVAILABLE
 
 # Skip all tests if GPU not available
-pytestmark = pytest.mark.skipif(
-    not GPU_AVAILABLE,
-    reason="CuPy/GPU not available"
-)
+pytestmark = pytest.mark.skipif(not GPU_AVAILABLE, reason="CuPy/GPU not available")
 
 
 if GPU_AVAILABLE:
     import cupy as cp
-    from cupyx.scipy import sparse as cp_sparse
 
 
 class TestNormalizationGPU:
@@ -74,7 +70,7 @@ class TestWeightsGPU:
         # Convert to dense for comparison
         W_cpu_dense = W_cpu.toarray()
         W_gpu_dense = W_gpu.toarray()
-        if hasattr(W_gpu_dense, 'get'):
+        if hasattr(W_gpu_dense, "get"):
             W_gpu_dense = W_gpu_dense.get()
 
         np.testing.assert_allclose(W_cpu_dense, W_gpu_dense, rtol=1e-5)
@@ -86,18 +82,14 @@ class TestWeightsGPU:
         rng = np.random.default_rng(42)
         coords = rng.uniform(0, 1000, (300, 2)).astype(np.float32)
 
-        W_cpu = create_ring_weights(
-            coords, outer_radius=150, inner_radius=50, use_gpu=False
-        )
+        W_cpu = create_ring_weights(coords, outer_radius=150, inner_radius=50, use_gpu=False)
 
         coords_gpu = cp.asarray(coords)
-        W_gpu = create_ring_weights(
-            coords_gpu, outer_radius=150, inner_radius=50, use_gpu=True
-        )
+        W_gpu = create_ring_weights(coords_gpu, outer_radius=150, inner_radius=50, use_gpu=True)
 
         W_cpu_dense = W_cpu.toarray()
         W_gpu_dense = W_gpu.toarray()
-        if hasattr(W_gpu_dense, 'get'):
+        if hasattr(W_gpu_dense, "get"):
             W_gpu_dense = W_gpu_dense.get()
 
         np.testing.assert_allclose(W_cpu_dense, W_gpu_dense, rtol=1e-5)
@@ -108,8 +100,8 @@ class TestSpatialLagGPU:
 
     def test_spatial_lag_equivalence(self):
         """Test spatial lag produces same result on GPU and CPU."""
-        from sigdiscovpy.core.weights import create_gaussian_weights
         from sigdiscovpy.core.spatial_lag import compute_spatial_lag
+        from sigdiscovpy.core.weights import create_gaussian_weights
 
         rng = np.random.default_rng(42)
         n = 500
@@ -145,7 +137,7 @@ class TestMetricsGPU:
         z_f_gpu = cp.asarray(z_f)
         lag_g_gpu = cp.asarray(lag_g)
         result_gpu = compute_moran_from_lag(z_f_gpu, lag_g_gpu, use_gpu=True)
-        if hasattr(result_gpu, 'get'):
+        if hasattr(result_gpu, "get"):
             result_gpu = result_gpu.get()
 
         np.testing.assert_allclose(result_cpu, result_gpu, rtol=1e-5)
@@ -164,7 +156,7 @@ class TestMetricsGPU:
         z_f_gpu = cp.asarray(z_f)
         lag_g_gpu = cp.asarray(lag_g)
         result_gpu = compute_ind_from_lag(z_f_gpu, lag_g_gpu, use_gpu=True)
-        if hasattr(result_gpu, 'get'):
+        if hasattr(result_gpu, "get"):
             result_gpu = result_gpu.get()
 
         np.testing.assert_allclose(result_cpu, result_gpu, rtol=1e-5)
@@ -232,18 +224,14 @@ class TestNumericalStabilityGPU:
         lag_g_32 = rng.standard_normal(100).astype(np.float32)
 
         result_cpu_32 = compute_ind_from_lag(z_f_32, lag_g_32, use_gpu=False)
-        result_gpu_32 = compute_ind_from_lag(
-            cp.asarray(z_f_32), cp.asarray(lag_g_32), use_gpu=True
-        )
+        result_gpu_32 = compute_ind_from_lag(cp.asarray(z_f_32), cp.asarray(lag_g_32), use_gpu=True)
 
         # Float64
         z_f_64 = z_f_32.astype(np.float64)
         lag_g_64 = lag_g_32.astype(np.float64)
 
         result_cpu_64 = compute_ind_from_lag(z_f_64, lag_g_64, use_gpu=False)
-        result_gpu_64 = compute_ind_from_lag(
-            cp.asarray(z_f_64), cp.asarray(lag_g_64), use_gpu=True
-        )
+        result_gpu_64 = compute_ind_from_lag(cp.asarray(z_f_64), cp.asarray(lag_g_64), use_gpu=True)
 
         # Results should be similar across precisions
         np.testing.assert_allclose(result_cpu_32, float(result_gpu_32), rtol=1e-4)

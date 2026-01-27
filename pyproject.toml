@@ -78,8 +78,14 @@ target-version = ["py39", "py310", "py311"]
 
 [tool.ruff]
 line-length = 100
-select = ["E", "F", "W", "I", "N", "UP", "B", "C4"]
-ignore = ["E501"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4"]
+ignore = [
+    "E501",  # Line too long (handled by black)
+    "E741",  # Ambiguous variable name (I, l, O) - common in math notation
+    "B904",  # raise ... from err - less critical
+]
 
 [tool.mypy]
 python_version = "3.9"

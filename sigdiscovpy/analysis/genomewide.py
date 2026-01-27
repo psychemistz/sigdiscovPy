@@ -4,20 +4,22 @@ Genome-wide spatial interaction analysis.
 Port of R genomewide_analysis() with GPU acceleration.
 """
 
-from typing import Optional, List, Dict, Any, Literal
+from typing import Any, Literal, Optional
+
 import numpy as np
-from sigdiscovpy.core.normalization import standardize_matrix
-from sigdiscovpy.core.weights import create_gaussian_weights, create_ring_weights
-from sigdiscovpy.core.spatial_lag import compute_spatial_lag_batch
+
 from sigdiscovpy.core.metrics import compute_metric_batch
+from sigdiscovpy.core.normalization import standardize_matrix
+from sigdiscovpy.core.spatial_lag import compute_spatial_lag_batch
+from sigdiscovpy.core.weights import create_gaussian_weights, create_ring_weights
 
 
 def genomewide_analysis(
     expr,
     coords,
-    factor_genes: List[str],
-    gene_names: List[str],
-    radii: List[float] = [10, 20, 30, 50, 100, 200, 300, 500],
+    factor_genes: list[str],
+    gene_names: list[str],
+    radii: list[float] = None,
     metric: Literal["moran", "ind"] = "ind",
     use_annular: bool = False,
     annular_width: float = 20.0,
@@ -25,7 +27,7 @@ def genomewide_analysis(
     use_gpu: bool = True,
     output_path: Optional[str] = None,
     verbose: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Genome-wide spatial interaction analysis.
 
@@ -78,6 +80,8 @@ def genomewide_analysis(
     ... )
     >>> result['matrices'][100].shape  # (3, n_genes)
     """
+    if radii is None:
+        radii = [10, 20, 30, 50, 100, 200, 300, 500]
     expr = np.asarray(expr, dtype=np.float64)
     coords = np.asarray(coords, dtype=np.float64)
 
@@ -178,13 +182,13 @@ def genomewide_analysis(
 
 
 def extract_top_delta_i(
-    metrics_dict: Dict[float, np.ndarray],
-    radii: List[float],
-    gene_names: List[str],
+    metrics_dict: dict[float, np.ndarray],
+    radii: list[float],
+    gene_names: list[str],
     factor_idx: int = 0,
     top_n: int = 100,
     baseline_radius: Optional[float] = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Extract top genes by delta I (change in metric across radii).
 

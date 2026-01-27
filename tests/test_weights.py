@@ -1,13 +1,13 @@
 """Tests for weight matrix creation."""
 
 import numpy as np
-import pytest
 from scipy import sparse
+
 from sigdiscovpy.core.weights import (
+    create_directional_weights,
     create_gaussian_weights,
     create_ring_weights,
     row_normalize_weights,
-    create_directional_weights,
 )
 
 
@@ -85,9 +85,7 @@ class TestRingWeights:
     def test_inner_excluded(self):
         """Test inner radius points are excluded."""
         coords = np.array([[0.0, 0.0], [5.0, 0.0], [30.0, 0.0]])
-        W = create_ring_weights(
-            coords, outer_radius=50, inner_radius=10, sparse=False
-        )
+        W = create_ring_weights(coords, outer_radius=50, inner_radius=10, sparse=False)
 
         # Point at distance 5 should be excluded (< inner_radius)
         assert W[0, 1] == 0

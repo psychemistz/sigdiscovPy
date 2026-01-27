@@ -5,11 +5,10 @@ These tests verify numerical equivalence with the R implementation.
 Tolerance: rtol=1e-10 for floating point comparison.
 """
 
+import subprocess
+
 import numpy as np
 import pytest
-import subprocess
-import tempfile
-from pathlib import Path
 
 # Skip these tests if R is not available
 R_AVAILABLE = False

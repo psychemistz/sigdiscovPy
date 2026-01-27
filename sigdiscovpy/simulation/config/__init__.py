@@ -1,13 +1,14 @@
 """Configuration dataclasses and presets for simulation."""
+
 from sigdiscovpy.simulation.config.dataclasses import (
-    SimulationConfig,
-    DomainConfig,
-    CellTypeConfig,
-    PositionConfig,
-    DiffusionConfig,
-    ExpressionConfig,
-    StochasticConfig,
     AnalysisConfig,
+    CellTypeConfig,
+    DiffusionConfig,
+    DomainConfig,
+    ExpressionConfig,
+    PositionConfig,
+    SimulationConfig,
+    StochasticConfig,
 )
 from sigdiscovpy.simulation.config.presets import SimulationPresets
 

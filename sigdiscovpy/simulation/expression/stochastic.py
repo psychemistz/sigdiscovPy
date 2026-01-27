@@ -8,7 +8,6 @@ Implements biologically realistic expression patterns:
 - Zero-inflation for dropout modeling
 """
 
-from typing import Tuple
 import numpy as np
 
 from sigdiscovpy.simulation.config.dataclasses import (
@@ -60,7 +59,7 @@ class ExpressionGenerator:
         n_total: int,
         n_active: int,
         active_indices: np.ndarray,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray]:
         """
         Generate stochastic factor expression.
 
@@ -86,9 +85,7 @@ class ExpressionGenerator:
             Boolean mask indicating which senders are "on" (n_active,).
         """
         # Initialize with basal expression
-        factor_expr = self.expr.F_basal * self._rng.lognormal(
-            0, self.expr.sigma_f_basal, n_total
-        )
+        factor_expr = self.expr.F_basal * self._rng.lognormal(0, self.expr.sigma_f_basal, n_total)
 
         # Zero-inflation for non-senders
         if self.stoch.zero_inflate_factor > 0:
@@ -103,9 +100,8 @@ class ExpressionGenerator:
 
         if n_expressing > 0:
             expressing_indices = active_indices[expressing_mask]
-            factor_expr[expressing_indices] = (
-                self.expr.F_high *
-                self._rng.lognormal(0, self.expr.sigma_f, n_expressing)
+            factor_expr[expressing_indices] = self.expr.F_high * self._rng.lognormal(
+                0, self.expr.sigma_f, n_expressing
             )
 
         return factor_expr, expressing_mask
@@ -115,7 +111,7 @@ class ExpressionGenerator:
         n_total: int,
         receiver_indices: np.ndarray,
         concentrations: np.ndarray,
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Generate stochastic response expression.
 
@@ -146,9 +142,7 @@ class ExpressionGenerator:
         n_receivers = len(receiver_indices)
 
         # Initialize with basal expression
-        response_expr = self.expr.R_basal * self._rng.lognormal(
-            0, self.expr.sigma_r_basal, n_total
-        )
+        response_expr = self.expr.R_basal * self._rng.lognormal(0, self.expr.sigma_r_basal, n_total)
 
         # Zero-inflation for non-receivers
         if self.stoch.zero_inflate_response > 0:
@@ -173,9 +167,8 @@ class ExpressionGenerator:
         non_responding_indices = receiver_indices[~responding_mask]
         n_non_responding = len(non_responding_indices)
         if n_non_responding > 0:
-            response_expr[non_responding_indices] = (
-                self.expr.R_basal *
-                self._rng.lognormal(0, self.expr.sigma_r_basal, n_non_responding)
+            response_expr[non_responding_indices] = self.expr.R_basal * self._rng.lognormal(
+                0, self.expr.sigma_r_basal, n_non_responding
             )
 
         # Responding receivers: activated expression
@@ -187,8 +180,8 @@ class ExpressionGenerator:
             activation = C_responding / (Kd + C_responding)
             # Mean expression scales with activation
             mean_expr = self.expr.R_basal * (1 + self.expr.fold_change * activation)
-            response_expr[responding_indices] = (
-                mean_expr * self._rng.lognormal(0, self.expr.sigma_r, n_responding)
+            response_expr[responding_indices] = mean_expr * self._rng.lognormal(
+                0, self.expr.sigma_r, n_responding
             )
 
         return response_expr, responding_mask, response_probs

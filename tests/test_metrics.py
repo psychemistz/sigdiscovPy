@@ -2,10 +2,11 @@
 
 import numpy as np
 import pytest
+
 from sigdiscovpy.core.metrics import (
-    compute_moran_from_lag,
     compute_ind_from_lag,
     compute_metric_batch,
+    compute_moran_from_lag,
 )
 
 

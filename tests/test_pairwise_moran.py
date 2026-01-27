@@ -1,7 +1,7 @@
 """Tests for pairwise Moran's I matrix computation."""
 
 import numpy as np
-import pytest
+
 from sigdiscovpy.analysis.pairwise_moran import pairwise_moran
 
 
@@ -92,6 +92,7 @@ class TestPairwiseMoran:
 
         # Without normalization (pre-normalized data)
         from sigdiscovpy.core.normalization import standardize_matrix
+
         expr_z = standardize_matrix(expr, axis=1)
         I_nonorm = pairwise_moran(expr_z, coords, radius=30, normalize=False)
 
@@ -115,8 +116,10 @@ class TestPairwiseMoranDirectional:
         receiver_coords = np.random.randn(n_receivers, 2) * 100
 
         I_matrix = pairwise_moran_directional(
-            sender_expr, receiver_expr,
-            sender_coords, receiver_coords,
+            sender_expr,
+            receiver_expr,
+            sender_coords,
+            receiver_coords,
             radius=50,
         )
 
@@ -136,8 +139,10 @@ class TestPairwiseMoranDirectional:
         receiver_coords = np.random.randn(n_receivers, 2) * 100
 
         I_matrix = pairwise_moran_directional(
-            sender_expr, receiver_expr,
-            sender_coords, receiver_coords,
+            sender_expr,
+            receiver_expr,
+            sender_coords,
+            receiver_coords,
             radius=50,
         )
 

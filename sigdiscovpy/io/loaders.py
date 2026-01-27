@@ -2,16 +2,17 @@
 Data loading utilities for various spatial transcriptomics formats.
 """
 
-from typing import Optional, Dict, Any
-import numpy as np
 from pathlib import Path
+from typing import Any, Optional
+
+import numpy as np
 
 
 def load_anndata(
     path: str,
     layer: Optional[str] = None,
     obs_key: str = "cell_type",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Load spatial data from AnnData (h5ad) file.
 
@@ -61,6 +62,7 @@ def load_anndata(
 
     # Convert to dense if sparse
     from scipy import sparse
+
     if sparse.issparse(expr):
         expr = expr.toarray()
 
@@ -95,7 +97,7 @@ def load_cosmx(
     coords_path: str,
     metadata_path: Optional[str] = None,
     cell_type_col: str = "cell_type",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Load CosMx spatial transcriptomics data.
 
@@ -179,8 +181,9 @@ def load_coordinates(
     df = pd.read_csv(path, sep=sep)
 
     if x_col not in df.columns or y_col not in df.columns:
-        raise KeyError(f"Columns '{x_col}' and/or '{y_col}' not found. "
-                      f"Available: {list(df.columns)}")
+        raise KeyError(
+            f"Columns '{x_col}' and/or '{y_col}' not found. " f"Available: {list(df.columns)}"
+        )
 
     return df[[x_col, y_col]].values.astype(np.float64)
 

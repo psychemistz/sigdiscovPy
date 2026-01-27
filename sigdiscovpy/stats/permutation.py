@@ -4,10 +4,12 @@ Permutation testing for spatial statistics.
 GPU-accelerated permutation tests for Moran's I and I_ND.
 """
 
-from typing import Optional, Literal, Tuple
+from typing import Literal, Optional
+
 import numpy as np
+
+from sigdiscovpy.core.metrics import compute_ind_from_lag, compute_moran_from_lag
 from sigdiscovpy.gpu.backend import GPU_AVAILABLE, ensure_numpy
-from sigdiscovpy.core.metrics import compute_moran_from_lag, compute_ind_from_lag
 
 
 def permutation_test(
@@ -178,7 +180,7 @@ def batch_permutation_test(
     metric: Literal["moran", "ind"] = "ind",
     random_seed: Optional[int] = None,
     use_gpu: bool = True,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Batch permutation test for one factor against all genes.
 
@@ -227,7 +229,7 @@ def _batch_permutation_test_cpu(
     lag_G: np.ndarray,
     n_permutations: int,
     metric: str,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """CPU batch permutation test."""
     n = len(z_f)
     n_genes = lag_G.shape[1]
@@ -271,7 +273,7 @@ def _batch_permutation_test_gpu(
     lag_G: np.ndarray,
     n_permutations: int,
     metric: str,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """GPU batch permutation test."""
     import cupy as cp
 

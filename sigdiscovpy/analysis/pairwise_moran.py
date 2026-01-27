@@ -5,11 +5,13 @@ Computes the gene x gene spatial correlation matrix.
 """
 
 from typing import Optional
+
 import numpy as np
 from scipy import sparse as sp_sparse
-from sigdiscovpy.gpu.backend import GPU_AVAILABLE, ensure_numpy
+
 from sigdiscovpy.core.normalization import standardize_matrix
 from sigdiscovpy.core.weights import create_gaussian_weights, get_weight_sum
+from sigdiscovpy.gpu.backend import GPU_AVAILABLE, ensure_numpy
 
 
 def pairwise_moran(

@@ -1,7 +1,8 @@
 """Spatial domain generation for simulation."""
+
 from sigdiscovpy.simulation.domain.spatial import (
-    SpatialDomain,
     SenderPositionGenerator,
+    SpatialDomain,
 )
 
 __all__ = ["SpatialDomain", "SenderPositionGenerator"]

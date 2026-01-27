@@ -1,8 +1,8 @@
 """Tests for normalization functions."""
 
 import numpy as np
-import pytest
-from sigdiscovpy.core.normalization import standardize_vector, standardize_matrix
+
+from sigdiscovpy.core.normalization import standardize_matrix, standardize_vector
 
 
 class TestStandardizeVector:
@@ -95,10 +95,12 @@ class TestStandardizeMatrix:
     def test_global_normalization(self):
         """Test that standardization uses global mean/std."""
         # This is CRITICAL for correct spatial analysis
-        X = np.array([
-            [1.0, 2.0, 3.0, 4.0],  # Gene 1
-            [10.0, 20.0, 30.0, 40.0],  # Gene 2 (10x Gene 1)
-        ])
+        X = np.array(
+            [
+                [1.0, 2.0, 3.0, 4.0],  # Gene 1
+                [10.0, 20.0, 30.0, 40.0],  # Gene 2 (10x Gene 1)
+            ]
+        )
 
         Z = standardize_matrix(X, axis=1)
 

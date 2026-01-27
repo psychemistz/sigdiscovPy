@@ -3,11 +3,10 @@ Tests for permutation testing module.
 """
 
 import numpy as np
-import pytest
 
 from sigdiscovpy.stats.permutation import (
-    permutation_test,
     batch_permutation_test,
+    permutation_test,
 )
 
 
@@ -23,19 +22,15 @@ class TestPermutationTest:
         lag_g = rng.standard_normal(n)
 
         result = permutation_test(
-            z_f, lag_g,
-            n_permutations=100,
-            metric="ind",
-            random_seed=42,
-            use_gpu=False
+            z_f, lag_g, n_permutations=100, metric="ind", random_seed=42, use_gpu=False
         )
 
-        assert 'observed' in result
-        assert 'pvalue' in result
-        assert 'null_mean' in result
-        assert 'null_std' in result
-        assert 'z_score' in result
-        assert 0 <= result['pvalue'] <= 1
+        assert "observed" in result
+        assert "pvalue" in result
+        assert "null_mean" in result
+        assert "null_std" in result
+        assert "z_score" in result
+        assert 0 <= result["pvalue"] <= 1
 
     def test_significant_correlation(self):
         """Test that highly correlated data yields low p-value."""
@@ -47,17 +42,18 @@ class TestPermutationTest:
         lag_g = z_f * 2 + rng.standard_normal(n) * 0.1
 
         result = permutation_test(
-            z_f, lag_g,
+            z_f,
+            lag_g,
             n_permutations=499,
             metric="ind",
             alternative="greater",
             random_seed=42,
-            use_gpu=False
+            use_gpu=False,
         )
 
         # Strong correlation should have low p-value
-        assert result['pvalue'] < 0.05
-        assert result['observed'] > 0.9  # High I_ND
+        assert result["pvalue"] < 0.05
+        assert result["observed"] > 0.9  # High I_ND
 
     def test_no_correlation(self):
         """Test that uncorrelated data yields high p-value."""
@@ -68,15 +64,11 @@ class TestPermutationTest:
         lag_g = rng.standard_normal(n)
 
         result = permutation_test(
-            z_f, lag_g,
-            n_permutations=499,
-            metric="ind",
-            random_seed=42,
-            use_gpu=False
+            z_f, lag_g, n_permutations=499, metric="ind", random_seed=42, use_gpu=False
         )
 
         # No correlation should have high p-value (typically > 0.05)
-        assert result['pvalue'] > 0.01
+        assert result["pvalue"] > 0.01
 
     def test_moran_metric(self):
         """Test Moran's I metric."""
@@ -87,15 +79,11 @@ class TestPermutationTest:
         lag_g = z_f + rng.standard_normal(n) * 0.5
 
         result = permutation_test(
-            z_f, lag_g,
-            n_permutations=99,
-            metric="moran",
-            random_seed=42,
-            use_gpu=False
+            z_f, lag_g, n_permutations=99, metric="moran", random_seed=42, use_gpu=False
         )
 
-        assert 'observed' in result
-        assert result['pvalue'] < 0.1  # Should detect correlation
+        assert "observed" in result
+        assert result["pvalue"] < 0.1  # Should detect correlation
 
     def test_alternative_greater(self):
         """Test one-sided 'greater' alternative."""
@@ -106,14 +94,10 @@ class TestPermutationTest:
         lag_g = z_f + rng.standard_normal(n) * 0.3
 
         result = permutation_test(
-            z_f, lag_g,
-            n_permutations=199,
-            alternative="greater",
-            random_seed=42,
-            use_gpu=False
+            z_f, lag_g, n_permutations=199, alternative="greater", random_seed=42, use_gpu=False
         )
 
-        assert result['pvalue'] < 0.05
+        assert result["pvalue"] < 0.05
 
     def test_alternative_less(self):
         """Test one-sided 'less' alternative."""
@@ -124,15 +108,11 @@ class TestPermutationTest:
         lag_g = -z_f + rng.standard_normal(n) * 0.3  # Negative correlation
 
         result = permutation_test(
-            z_f, lag_g,
-            n_permutations=199,
-            alternative="less",
-            random_seed=42,
-            use_gpu=False
+            z_f, lag_g, n_permutations=199, alternative="less", random_seed=42, use_gpu=False
         )
 
-        assert result['pvalue'] < 0.05
-        assert result['observed'] < 0
+        assert result["pvalue"] < 0.05
+        assert result["observed"] < 0
 
     def test_reproducibility(self):
         """Test that same seed produces same results."""
@@ -140,22 +120,12 @@ class TestPermutationTest:
         z_f = rng.standard_normal(50)
         lag_g = rng.standard_normal(50)
 
-        result1 = permutation_test(
-            z_f, lag_g,
-            n_permutations=100,
-            random_seed=123,
-            use_gpu=False
-        )
+        result1 = permutation_test(z_f, lag_g, n_permutations=100, random_seed=123, use_gpu=False)
 
-        result2 = permutation_test(
-            z_f, lag_g,
-            n_permutations=100,
-            random_seed=123,
-            use_gpu=False
-        )
+        result2 = permutation_test(z_f, lag_g, n_permutations=100, random_seed=123, use_gpu=False)
 
-        assert result1['pvalue'] == result2['pvalue']
-        assert result1['observed'] == result2['observed']
+        assert result1["pvalue"] == result2["pvalue"]
+        assert result1["observed"] == result2["observed"]
 
 
 class TestBatchPermutationTest:
@@ -171,10 +141,7 @@ class TestBatchPermutationTest:
         lag_G = rng.standard_normal((n_samples, n_genes))
 
         observed, pvalues = batch_permutation_test(
-            z_f, lag_G,
-            n_permutations=99,
-            random_seed=42,
-            use_gpu=False
+            z_f, lag_G, n_permutations=99, random_seed=42, use_gpu=False
         )
 
         assert observed.shape == (n_genes,)
@@ -194,10 +161,7 @@ class TestBatchPermutationTest:
         lag_G[:, 0] = z_f * 2 + rng.standard_normal(n_samples) * 0.1  # Strongly correlated
 
         observed, pvalues = batch_permutation_test(
-            z_f, lag_G,
-            n_permutations=499,
-            random_seed=42,
-            use_gpu=False
+            z_f, lag_G, n_permutations=499, random_seed=42, use_gpu=False
         )
 
         # First gene should have lowest p-value
@@ -214,11 +178,7 @@ class TestBatchPermutationTest:
         lag_G = rng.standard_normal((n_samples, n_genes))
 
         observed, pvalues = batch_permutation_test(
-            z_f, lag_G,
-            n_permutations=99,
-            metric="moran",
-            random_seed=42,
-            use_gpu=False
+            z_f, lag_G, n_permutations=99, metric="moran", random_seed=42, use_gpu=False
         )
 
         assert observed.shape == (n_genes,)
@@ -234,14 +194,9 @@ class TestEdgeCases:
         z_f = rng.standard_normal(20)
         lag_g = rng.standard_normal(20)
 
-        result = permutation_test(
-            z_f, lag_g,
-            n_permutations=1,
-            random_seed=42,
-            use_gpu=False
-        )
+        result = permutation_test(z_f, lag_g, n_permutations=1, random_seed=42, use_gpu=False)
 
-        assert 0 <= result['pvalue'] <= 1
+        assert 0 <= result["pvalue"] <= 1
 
     def test_small_sample(self):
         """Test with small sample size."""
@@ -249,46 +204,31 @@ class TestEdgeCases:
         z_f = rng.standard_normal(5)
         lag_g = rng.standard_normal(5)
 
-        result = permutation_test(
-            z_f, lag_g,
-            n_permutations=50,
-            random_seed=42,
-            use_gpu=False
-        )
+        result = permutation_test(z_f, lag_g, n_permutations=50, random_seed=42, use_gpu=False)
 
-        assert 'pvalue' in result
-        assert 0 <= result['pvalue'] <= 1
+        assert "pvalue" in result
+        assert 0 <= result["pvalue"] <= 1
 
     def test_zero_variance_handling(self):
         """Test handling of zero variance input."""
         z_f = np.ones(20)  # Constant
         lag_g = np.random.randn(20)
 
-        result = permutation_test(
-            z_f, lag_g,
-            n_permutations=50,
-            random_seed=42,
-            use_gpu=False
-        )
+        result = permutation_test(z_f, lag_g, n_permutations=50, random_seed=42, use_gpu=False)
 
         # Should handle gracefully (may return NaN)
-        assert 'pvalue' in result
+        assert "pvalue" in result
 
     def test_nan_in_observed(self):
         """Test handling when observed statistic is NaN."""
         z_f = np.zeros(20)
         lag_g = np.zeros(20)
 
-        result = permutation_test(
-            z_f, lag_g,
-            n_permutations=50,
-            random_seed=42,
-            use_gpu=False
-        )
+        result = permutation_test(z_f, lag_g, n_permutations=50, random_seed=42, use_gpu=False)
 
         # Should return NaN values gracefully
-        assert np.isnan(result['observed'])
-        assert np.isnan(result['pvalue'])
+        assert np.isnan(result["observed"])
+        assert np.isnan(result["pvalue"])
 
 
 class TestPValueBounds:
@@ -303,15 +243,10 @@ class TestPValueBounds:
         z_f = rng.standard_normal(n)
         lag_g = z_f.copy()
 
-        result = permutation_test(
-            z_f, lag_g,
-            n_permutations=99,
-            random_seed=42,
-            use_gpu=False
-        )
+        result = permutation_test(z_f, lag_g, n_permutations=99, random_seed=42, use_gpu=False)
 
         # Minimum p-value should be 1/100 = 0.01
-        assert result['pvalue'] >= 1 / 100
+        assert result["pvalue"] >= 1 / 100
 
     def test_pvalue_maximum(self):
         """Test that p-value is at most 1."""
@@ -319,11 +254,6 @@ class TestPValueBounds:
         z_f = rng.standard_normal(50)
         lag_g = rng.standard_normal(50)
 
-        result = permutation_test(
-            z_f, lag_g,
-            n_permutations=99,
-            random_seed=42,
-            use_gpu=False
-        )
+        result = permutation_test(z_f, lag_g, n_permutations=99, random_seed=42, use_gpu=False)
 
-        assert result['pvalue'] <= 1.0
+        assert result["pvalue"] <= 1.0

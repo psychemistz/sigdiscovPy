@@ -4,26 +4,28 @@ Cell type pair spatial interaction analysis.
 Analyzes spatial interactions between all sender-receiver cell type pairs.
 """
 
-from typing import List, Dict, Any, Tuple
+from typing import Any
+
 import numpy as np
-from sigdiscovpy.core.normalization import standardize_matrix
-from sigdiscovpy.core.weights import create_directional_weights
-from sigdiscovpy.core.spatial_lag import compute_spatial_lag_batch
+
 from sigdiscovpy.core.metrics import compute_metrics_matrix
+from sigdiscovpy.core.normalization import standardize_matrix
+from sigdiscovpy.core.spatial_lag import compute_spatial_lag_batch
+from sigdiscovpy.core.weights import create_directional_weights
 
 
 def compute_celltype_pair_analysis(
     expr,
     coords,
     cell_types: np.ndarray,
-    factor_genes: List[str],
-    gene_names: List[str],
-    radii: List[float] = [50, 100, 200],
+    factor_genes: list[str],
+    gene_names: list[str],
+    radii: list[float] = None,
     metric: str = "ind",
     min_cells: int = 10,
     use_gpu: bool = True,
     verbose: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Compute spatial metrics for all cell type pairs.
 
@@ -70,6 +72,8 @@ def compute_celltype_pair_analysis(
     >>> key = ('T cell', 'Macrophage', 100)
     >>> result['matrices'][key].shape  # (n_factors, n_genes)
     """
+    if radii is None:
+        radii = [50, 100, 200]
     expr = np.asarray(expr, dtype=np.float64)
     coords = np.asarray(coords, dtype=np.float64)
     cell_types = np.asarray(cell_types)
@@ -153,7 +157,7 @@ def compute_celltype_pair_analysis(
             # Compute metrics: (n_factors, n_genes)
             metrics = compute_metrics_matrix(
                 sender_expr.T,  # (n_sender_cells, n_factors)
-                lag_G,          # (n_sender_cells, n_genes)
+                lag_G,  # (n_sender_cells, n_genes)
                 metric=metric,
                 use_gpu=use_gpu,
             )
@@ -171,11 +175,11 @@ def compute_celltype_pair_analysis(
 
 
 def extract_top_pairs(
-    results: Dict[str, Any],
+    results: dict[str, Any],
     factor_idx: int = 0,
     gene_idx: int = 0,
     top_n: int = 10,
-) -> List[Tuple[str, str, float, float]]:
+) -> list[tuple[str, str, float, float]]:
     """
     Extract top cell type pairs by metric value.
 

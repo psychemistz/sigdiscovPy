@@ -7,7 +7,6 @@ Provides classes for:
 - Distributing senders across multiple positions
 """
 
-from typing import Dict, List, Tuple
 import numpy as np
 
 from sigdiscovpy.simulation.config.dataclasses import (
@@ -62,16 +61,15 @@ class SpatialDomain:
         angles = self._rng.uniform(0, 2 * np.pi, n)
         radii = np.sqrt(self._rng.uniform(0, 1, n)) * max_r
 
-        positions = np.column_stack([
-            center[0] + radii * np.cos(angles),
-            center[1] + radii * np.sin(angles)
-        ])
+        positions = np.column_stack(
+            [center[0] + radii * np.cos(angles), center[1] + radii * np.sin(angles)]
+        )
 
         return positions
 
     def get_domain_area(self) -> float:
         """Get the area of the circular domain."""
-        return np.pi * self.config.max_radius ** 2
+        return np.pi * self.config.max_radius**2
 
 
 class SenderPositionGenerator:
@@ -106,7 +104,7 @@ class SenderPositionGenerator:
         self.center = np.array(domain_config.center)
         self._rng = np.random.default_rng(domain_config.random_seed)
 
-    def generate_positions(self) -> Dict[str, np.ndarray]:
+    def generate_positions(self) -> dict[str, np.ndarray]:
         """
         Generate sender position dictionary.
 
@@ -116,7 +114,7 @@ class SenderPositionGenerator:
             Dictionary mapping position labels to coordinates.
         """
         if self.config.mode == SenderPositionMode.CENTER:
-            return {'C': self.center.copy()}
+            return {"C": self.center.copy()}
 
         elif self.config.mode == SenderPositionMode.FIXED_5:
             return self._generate_fixed_5()
@@ -127,18 +125,18 @@ class SenderPositionGenerator:
         else:
             raise ValueError(f"Unknown position mode: {self.config.mode}")
 
-    def _generate_fixed_5(self) -> Dict[str, np.ndarray]:
+    def _generate_fixed_5(self) -> dict[str, np.ndarray]:
         """Generate 5 fixed positions: Center, West, East, North, South."""
         offset = self.config.offset_distance
         return {
-            'C': self.center.copy(),
-            'W': np.array([self.center[0] - offset, self.center[1]]),
-            'E': np.array([self.center[0] + offset, self.center[1]]),
-            'N': np.array([self.center[0], self.center[1] + offset]),
-            'S': np.array([self.center[0], self.center[1] - offset]),
+            "C": self.center.copy(),
+            "W": np.array([self.center[0] - offset, self.center[1]]),
+            "E": np.array([self.center[0] + offset, self.center[1]]),
+            "N": np.array([self.center[0], self.center[1] + offset]),
+            "S": np.array([self.center[0], self.center[1] - offset]),
         }
 
-    def _generate_random_positions(self) -> Dict[str, np.ndarray]:
+    def _generate_random_positions(self) -> dict[str, np.ndarray]:
         """Generate random positions with minimum separation."""
         positions = {}
         coords_list = []
@@ -151,20 +149,18 @@ class SenderPositionGenerator:
             angle = self._rng.uniform(0, 2 * np.pi)
             r = np.sqrt(self._rng.uniform()) * effective_radius
 
-            new_pos = np.array([
-                self.center[0] + r * np.cos(angle),
-                self.center[1] + r * np.sin(angle)
-            ])
+            new_pos = np.array(
+                [self.center[0] + r * np.cos(angle), self.center[1] + r * np.sin(angle)]
+            )
 
             if len(coords_list) == 0:
                 valid = True
             else:
-                distances = [np.linalg.norm(new_pos - existing)
-                            for existing in coords_list]
+                distances = [np.linalg.norm(new_pos - existing) for existing in coords_list]
                 valid = min(distances) >= self.config.min_separation
 
             if valid:
-                pos_label = f'P{len(positions) + 1}'
+                pos_label = f"P{len(positions) + 1}"
                 positions[pos_label] = new_pos
                 coords_list.append(new_pos)
 
@@ -172,9 +168,11 @@ class SenderPositionGenerator:
 
         if len(positions) < self.config.n_positions:
             import warnings
+
             warnings.warn(
                 f"Only placed {len(positions)}/{self.config.n_positions} positions "
-                f"after {max_attempts} attempts. Consider reducing min_separation."
+                f"after {max_attempts} attempts. Consider reducing min_separation.",
+                stacklevel=2,
             )
 
         return positions
@@ -182,9 +180,9 @@ class SenderPositionGenerator:
     @staticmethod
     def distribute_senders(
         n_senders: int,
-        position_dict: Dict[str, np.ndarray],
+        position_dict: dict[str, np.ndarray],
         rng: np.random.Generator = None,
-    ) -> Tuple[Dict[str, int], List[Tuple[str, np.ndarray]]]:
+    ) -> tuple[dict[str, int], list[tuple[str, np.ndarray]]]:
         """
         Distribute sender cells across positions.
 
@@ -219,14 +217,11 @@ class SenderPositionGenerator:
         n_pos = len(position_names)
 
         if n_senders < n_pos:
-            raise ValueError(
-                f"n_senders ({n_senders}) must be >= number of positions ({n_pos})"
-            )
+            raise ValueError(f"n_senders ({n_senders}) must be >= number of positions ({n_pos})")
 
         # Each position gets at least one sender
-        assignments = {name: 1 for name in position_names}
-        sender_positions = [(name, position_dict[name].copy())
-                          for name in position_names]
+        assignments = dict.fromkeys(position_names, 1)
+        sender_positions = [(name, position_dict[name].copy()) for name in position_names]
 
         # Distribute remaining senders randomly
         remaining = n_senders - n_pos
@@ -240,7 +235,7 @@ class SenderPositionGenerator:
     @staticmethod
     def assign_cells_to_positions(
         cell_positions: np.ndarray,
-        sender_positions: List[Tuple[str, np.ndarray]],
+        sender_positions: list[tuple[str, np.ndarray]],
         cell_indices: np.ndarray,
     ) -> np.ndarray:
         """

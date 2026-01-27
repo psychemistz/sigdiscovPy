@@ -4,7 +4,6 @@ KD-tree based neighbor search for scalable spatial analysis.
 Uses scipy.spatial.cKDTree for O(n log n) neighbor queries.
 """
 
-from typing import List, Tuple
 import numpy as np
 from scipy.spatial import cKDTree
 
@@ -42,7 +41,7 @@ class KDTreeNeighborSearch:
         radius: float,
         return_distance: bool = False,
         exclude_self: bool = False,
-    ) -> List:
+    ) -> list:
         """
         Find all neighbors within radius for each point.
 
@@ -68,8 +67,7 @@ class KDTreeNeighborSearch:
 
         if exclude_self:
             neighbors = [
-                [j for j in neighbor_list if j != i]
-                for i, neighbor_list in enumerate(neighbors)
+                [j for j in neighbor_list if j != i] for i, neighbor_list in enumerate(neighbors)
             ]
 
         if not return_distance:
@@ -81,9 +79,7 @@ class KDTreeNeighborSearch:
             if len(neighbor_indices) == 0:
                 distances.append(np.array([], dtype=np.float64))
             else:
-                dists = np.linalg.norm(
-                    self.coords[neighbor_indices] - self.coords[i], axis=1
-                )
+                dists = np.linalg.norm(self.coords[neighbor_indices] - self.coords[i], axis=1)
                 distances.append(dists)
 
         return neighbors, distances
@@ -92,7 +88,7 @@ class KDTreeNeighborSearch:
         self,
         radius: float,
         exclude_self: bool = True,
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Find neighbors and return in sparse coordinate format.
 
@@ -133,7 +129,7 @@ class KDTreeNeighborSearch:
         self,
         sender_coords,
         radius: float,
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Find receiver neighbors for each sender point.
 
@@ -174,7 +170,7 @@ def query_radius_neighbors(
     coords,
     radius: float,
     exclude_self: bool = True,
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Convenience function for radius neighbor query.
 
