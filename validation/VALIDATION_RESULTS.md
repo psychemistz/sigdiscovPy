@@ -41,6 +41,8 @@ Both Python and R use **global normalization**:
 
 ## CosMx Single-Cell Validation
 
+### Dataset 1: Lung5_Rep1
+
 **Dataset**: Lung5_Rep1 (NanoString CosMx)
 - 98,002 cells
 - 960 genes
@@ -79,6 +81,37 @@ Both Python and R use **global normalization**:
 | Moran I[0,1] | 0.0000278999 | 0.0000279739 | 7.40e-08 | PASS |
 
 Note: Weight sums differ because R row-normalizes by default (sum=n_cells), Python doesn't.
+
+### Dataset 2: COAD High-Plex
+
+**Dataset**: coad_spatial.h5ad (16 GB)
+- 112,846 cells
+- 5,917 genes
+- 21 cell types
+
+#### Core Functions (10,000 cell subset)
+
+| Function | Result | Status |
+|----------|--------|--------|
+| `standardize_matrix` | mean=-1.86e-17, std=1.0 | PASS |
+| `create_gaussian_weights` | sum=51,302 (r=100) | PASS |
+| `compute_spatial_lag` | range=[-7.92, 27.08] | PASS |
+| `compute_moran_from_lag` | -0.026195 | PASS |
+| `compute_ind_from_lag` | -0.012946 | PASS |
+
+#### Pairwise Moran (30 genes, 5,000 cells)
+
+- **Time**: 0.19s
+- **Diagonal range**: [-0.0110, 0.2708]
+- **Off-diagonal range**: [-0.0322, 0.0399]
+
+#### Cell Type Directional Analysis
+
+- **Analysis**: tumor → CAF (cancer-associated fibroblasts)
+- **Senders**: 3,000 cells (from 27,621 tumor cells)
+- **Receivers**: 3,000 cells (from 18,969 CAF cells)
+- **Time**: 0.10s
+- **Value range**: [-0.0633, 0.1938]
 
 ## Test Coverage
 
