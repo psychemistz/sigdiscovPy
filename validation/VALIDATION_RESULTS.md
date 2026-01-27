@@ -113,6 +113,31 @@ Note: Weight sums differ because R row-normalizes by default (sum=n_cells), Pyth
 - **Time**: 0.10s
 - **Value range**: [-0.0633, 0.1938]
 
+## Macrophage → CAF TGFB1 Annular Analysis
+
+**Dataset**: COAD CosMx (coad_spatial.h5ad)
+- Factor gene: TGFB1
+- Sender: macrophage (3,844 cells)
+- Receiver: CAF (18,969 cells)
+- Target genes: 5,917
+
+### I_ND Correlation with R Results
+
+| Annulus | Correlation | Status |
+|---------|-------------|--------|
+| 0-10 | 0.9999999999 | PASS |
+| 10-20 | 0.9583 | PASS |
+| 20-30 | 0.9700 | PASS |
+| 30-50 | 0.9632 | PASS |
+| 50-100 | 0.9735 | PASS |
+| 100-200 | 0.9825 | PASS |
+| 200-300 | 0.9837 | PASS |
+| 300-500 | 0.9861 | PASS |
+
+**Overall correlation**: 0.977
+
+**Note**: The 0-10 annulus matches R at machine precision (diff < 3e-06), confirming the core algorithm is identical. Small differences in larger annuli are due to row-normalization behavior in weight matrix construction.
+
 ## Test Coverage
 
 - **60 tests passing** (1.38s)
