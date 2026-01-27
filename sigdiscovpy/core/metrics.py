@@ -13,6 +13,45 @@ import numpy as np
 from sigdiscovpy.gpu.backend import get_array_module, ensure_numpy
 
 
+def _validate_vectors(z_f, lag_g, func_name: str):
+    """
+    Validate input vectors for metric computation.
+
+    Parameters
+    ----------
+    z_f : array-like
+        First vector.
+    lag_g : array-like
+        Second vector.
+    func_name : str
+        Name of calling function for error messages.
+
+    Raises
+    ------
+    ValueError
+        If inputs are invalid (dimension mismatch, empty, or contain NaN/Inf).
+    """
+    z_f = np.asarray(z_f)
+    lag_g = np.asarray(lag_g)
+
+    # Check for empty arrays
+    if z_f.size == 0 or lag_g.size == 0:
+        raise ValueError(f"{func_name}: Input vectors cannot be empty")
+
+    # Check dimension match
+    if z_f.shape[0] != lag_g.shape[0]:
+        raise ValueError(
+            f"{func_name}: Dimension mismatch - z_f has length {z_f.shape[0]}, "
+            f"lag_g has length {lag_g.shape[0]}"
+        )
+
+    # Check for NaN/Inf
+    if np.any(~np.isfinite(z_f)):
+        raise ValueError(f"{func_name}: z_f contains NaN or Inf values")
+    if np.any(~np.isfinite(lag_g)):
+        raise ValueError(f"{func_name}: lag_g contains NaN or Inf values")
+
+
 def compute_moran_from_lag(
     z_f,
     lag_g,
@@ -49,7 +88,15 @@ def compute_moran_from_lag(
     -----
     Positive I indicates spatial clustering (similar values near each other).
     Negative I indicates spatial dispersion (dissimilar values near each other).
+
+    Raises
+    ------
+    ValueError
+        If inputs have mismatched dimensions, are empty, or contain NaN/Inf.
     """
+    # Validate inputs
+    _validate_vectors(z_f, lag_g, "compute_moran_from_lag")
+
     xp = get_array_module(use_gpu)
     z_f_arr = xp.asarray(z_f, dtype=xp.float64)
     lag_g_arr = xp.asarray(lag_g, dtype=xp.float64)
@@ -101,7 +148,15 @@ def compute_ind_from_lag(
     - +1: Perfect positive spatial association
     -  0: No spatial association
     - -1: Perfect negative spatial association
+
+    Raises
+    ------
+    ValueError
+        If inputs have mismatched dimensions, are empty, or contain NaN/Inf.
     """
+    # Validate inputs
+    _validate_vectors(z_f, lag_g, "compute_ind_from_lag")
+
     xp = get_array_module(use_gpu)
     z_f_arr = xp.asarray(z_f, dtype=xp.float64)
     lag_g_arr = xp.asarray(lag_g, dtype=xp.float64)
@@ -165,7 +220,31 @@ def compute_metric_batch(
     This is the workhorse function for genome-wide analysis:
     1. Compute spatial lag matrix once: lag_G = W @ Z_g
     2. Call this function to get metrics for all genes in one vectorized operation
+
+    Raises
+    ------
+    ValueError
+        If inputs have mismatched dimensions, are empty, or contain NaN/Inf.
     """
+    # Convert to arrays for validation
+    z_f_np = np.asarray(z_f)
+    lag_G_np = np.asarray(lag_G)
+
+    # Validate inputs
+    if z_f_np.size == 0 or lag_G_np.size == 0:
+        raise ValueError("compute_metric_batch: Input arrays cannot be empty")
+
+    if z_f_np.shape[0] != lag_G_np.shape[0]:
+        raise ValueError(
+            f"compute_metric_batch: Dimension mismatch - z_f has length {z_f_np.shape[0]}, "
+            f"lag_G has {lag_G_np.shape[0]} rows"
+        )
+
+    if np.any(~np.isfinite(z_f_np)):
+        raise ValueError("compute_metric_batch: z_f contains NaN or Inf values")
+    if np.any(~np.isfinite(lag_G_np)):
+        raise ValueError("compute_metric_batch: lag_G contains NaN or Inf values")
+
     xp = get_array_module(use_gpu)
     z_f_arr = xp.asarray(z_f, dtype=xp.float64)
     lag_G_arr = xp.asarray(lag_G, dtype=xp.float64)

@@ -41,6 +41,7 @@ class KDTreeNeighborSearch:
         self,
         radius: float,
         return_distance: bool = False,
+        exclude_self: bool = False,
     ) -> List:
         """
         Find all neighbors within radius for each point.
@@ -51,22 +52,41 @@ class KDTreeNeighborSearch:
             Search radius.
         return_distance : bool, default=False
             Whether to also return distances.
+        exclude_self : bool, default=False
+            Whether to exclude self-connections (point i is neighbor of itself).
 
         Returns
         -------
-        list
-            List of arrays, where neighbors[i] contains indices of
-            points within radius of point i.
-            If return_distance=True, returns (neighbors, distances).
+        list or tuple
+            If return_distance=False:
+                List of arrays, where neighbors[i] contains indices of
+                points within radius of point i.
+            If return_distance=True:
+                Tuple (neighbors, distances) where both are lists of arrays.
         """
-        if return_distance:
-            return self.tree.query_ball_point(
-                self.coords,
-                radius,
-                return_sorted=True,
-            )
-        else:
-            return self.tree.query_ball_tree(self.tree, radius)
+        neighbors = self.tree.query_ball_tree(self.tree, radius)
+
+        if exclude_self:
+            neighbors = [
+                [j for j in neighbor_list if j != i]
+                for i, neighbor_list in enumerate(neighbors)
+            ]
+
+        if not return_distance:
+            return neighbors
+
+        # Compute distances for each neighbor pair
+        distances = []
+        for i, neighbor_indices in enumerate(neighbors):
+            if len(neighbor_indices) == 0:
+                distances.append(np.array([], dtype=np.float64))
+            else:
+                dists = np.linalg.norm(
+                    self.coords[neighbor_indices] - self.coords[i], axis=1
+                )
+                distances.append(dists)
+
+        return neighbors, distances
 
     def query_radius_sparse(
         self,
