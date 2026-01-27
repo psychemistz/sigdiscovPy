@@ -113,36 +113,22 @@ jobs:
         run: |
           pytest tests/test_cross_validation.py -v --tb=short || echo "Cross-validation tests completed"
 
-  test-gpu:
-    name: Test GPU (Optional)
-    runs-on: [self-hosted, gpu]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    continue-on-error: true
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install dependencies with GPU support
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[test,gpu]"
-
-      - name: Verify GPU availability
-        run: |
-          python -c "
-          try:
-              import cupy as cp
-              print(f'CuPy version: {cp.__version__}')
-              print(f'CUDA available: {cp.cuda.runtime.getDeviceCount() > 0}')
-          except ImportError:
-              print('CuPy not available')
-          "
-
-      - name: Run GPU tests
-        run: |
-          pytest tests/ -v --tb=short -k "gpu"
+  # GPU tests disabled - requires self-hosted runner with GPU
+  # Uncomment when self-hosted GPU runner is available
+  # test-gpu:
+  #   name: Test GPU (Optional)
+  #   runs-on: [self-hosted, gpu]
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  #   continue-on-error: true
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Set up Python
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: '3.11'
+  #     - name: Install dependencies with GPU support
+  #       run: |
+  #         python -m pip install --upgrade pip
+  #         pip install -e ".[test,gpu]"
+  #     - name: Run GPU tests
+  #       run: pytest tests/ -v --tb=short -k "gpu"
