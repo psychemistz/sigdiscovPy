@@ -85,14 +85,7 @@ pytest tests/ -v
 
 ## Citation
 
-```bibtex
-@article{ru2025secact,
-  title={Inference of secreted protein activities in intercellular communication},
-  author={Ru, Beibei and Gong, Lanqi and Yang, Emily and Park, Seongyong and Zaki, George and Aldape, Kenneth and Wakefield, Lalage and Jiang, Peng},
-  journal={SecAct},
-  year={2025}
-}
-```
+Beibei Ru, Lanqi Gong, Emily Yang, Seongyong Park, George Zaki, Kenneth Aldape, Lalage Wakefield, Peng Jiang. Inference of secreted protein activities in intercellular communication. [Link](https://github.com/data2intelligence/SecAct)
 
 ## License
 
