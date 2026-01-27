@@ -128,8 +128,9 @@ def compute_annular_analysis(
     receiver_expr = expr_norm[:, caf_idx]  # (n_genes, n_receivers)
 
     # Create annular weight matrix
+    # Python v7 (which generated R reference results) uses sigma = outer_radius / 3
     sigma = outer_radius / 3.0
-    W = create_directional_ring_weights(
+    W, S0 = create_directional_ring_weights(
         sender_coords,
         receiver_coords,
         inner_radius=inner_radius,
@@ -137,9 +138,8 @@ def compute_annular_analysis(
         sigma=sigma,
     )
 
-    # Get weight sum and connection count
+    # Get connection count (S0 is raw weight sum before normalization, matching R)
     W_dense = W.toarray() if hasattr(W, 'toarray') else W
-    S0 = float(W_dense.sum())
     n_connections = int((W_dense > 0).sum())
 
     print(f"  Annulus {inner_radius}-{outer_radius}: S0={S0:.2f}, connections={n_connections}")
@@ -239,8 +239,15 @@ def create_directional_ring_weights(
     outer_radius: float,
     sigma: float,
     row_normalize: bool = True,
-) -> 'scipy.sparse.csr_matrix':
-    """Create directional ring weights between senders and receivers."""
+) -> tuple:
+    """Create directional ring weights between senders and receivers.
+
+    Returns
+    -------
+    tuple: (W_normalized, raw_weight_sum)
+        W_normalized: Row-normalized sparse weight matrix
+        raw_weight_sum: Sum of weights BEFORE row normalization (matches R output)
+    """
     from scipy import sparse as sp_sparse
 
     n_senders = sender_coords.shape[0]
@@ -252,7 +259,7 @@ def create_directional_ring_weights(
 
     rows_list = []
     cols_list = []
-    weights_list = []
+    raw_weights_list = []  # Store raw weights before normalization
 
     # Chunked computation for memory efficiency
     chunk_size = 1000
@@ -277,26 +284,32 @@ def create_directional_ring_weights(
                 dists = np.sqrt(dist_sq[local_i, neighbors])
                 weights = np.exp(dists**2 * gaussian_factor)
 
-                if row_normalize:
-                    # Row normalize
-                    row_sum = weights.sum()
-                    if row_sum > 1e-10:
-                        weights = weights / row_sum
-                    else:
-                        continue
-
                 rows_list.extend([global_i] * len(neighbors))
                 cols_list.extend(neighbors.tolist())
-                weights_list.extend(weights.tolist())
+                raw_weights_list.extend(weights.tolist())
 
     if len(rows_list) == 0:
-        return sp_sparse.csr_matrix((n_senders, n_receivers), dtype=np.float64)
+        return sp_sparse.csr_matrix((n_senders, n_receivers), dtype=np.float64), 0.0
 
-    return sp_sparse.csr_matrix(
-        (weights_list, (rows_list, cols_list)),
+    # Create sparse matrix with RAW weights
+    W_raw = sp_sparse.csr_matrix(
+        (raw_weights_list, (rows_list, cols_list)),
         shape=(n_senders, n_receivers),
         dtype=np.float64,
     )
+
+    # Calculate raw weight sum BEFORE normalization (matches R)
+    raw_weight_sum = float(W_raw.sum())
+
+    if row_normalize:
+        # Row normalize: each row sums to 1
+        row_sums = np.array(W_raw.sum(axis=1)).ravel()
+        row_sums_inv = np.where(row_sums > 0, 1.0 / row_sums, 0.0)
+        D_inv = sp_sparse.diags(row_sums_inv, format='csr')
+        W_normalized = D_inv @ W_raw
+        return W_normalized, raw_weight_sum
+    else:
+        return W_raw, raw_weight_sum
 
 
 def create_empty_results(gene_names, inner_radius, outer_radius, n_senders, n_receivers):
