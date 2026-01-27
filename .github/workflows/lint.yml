@@ -1,0 +1,38 @@
+name: Lint sigdiscovPy
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint and Type Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff black mypy
+
+      - name: Check formatting with black
+        run: |
+          black --check --diff sigdiscovpy/ tests/
+
+      - name: Lint with ruff
+        run: |
+          ruff check sigdiscovpy/ tests/
+
+      - name: Type check with mypy
+        run: |
+          mypy sigdiscovpy/ --ignore-missing-imports
+        continue-on-error: true

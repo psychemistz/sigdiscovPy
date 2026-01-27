@@ -43,12 +43,15 @@ gpu = [
 test = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
+    "pytest-xdist>=3.0.0",
 ]
 dev = [
     "sigdiscovpy[test]",
     "black>=23.0.0",
     "ruff>=0.1.0",
     "mypy>=1.0.0",
+    "pre-commit>=3.0.0",
+    "build>=1.0.0",
 ]
 all = [
     "sigdiscovpy[gpu,test,dev]",
