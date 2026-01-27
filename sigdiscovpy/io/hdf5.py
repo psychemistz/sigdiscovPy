@@ -2,7 +2,7 @@
 HDF5 I/O utilities for storing and loading analysis results.
 """
 
-from typing import Dict, List, Optional, Any, Union
+from typing import Dict, List, Optional, Any
 import numpy as np
 from pathlib import Path
 

@@ -275,49 +275,49 @@ class SimulationConfig:
             d = json.load(f)
 
         config = cls()
-        
+
         # Domain
         if 'domain' in d:
             for k, v in d['domain'].items():
                 if k == 'center':
                     v = tuple(v)
                 setattr(config.domain, k, v)
-        
+
         # Cell types
         if 'cell_types' in d:
             for k, v in d['cell_types'].items():
                 setattr(config.cell_types, k, v)
-        
+
         # Position
         if 'position' in d:
             for k, v in d['position'].items():
                 if k == 'mode':
                     v = SenderPositionMode(v)
                 setattr(config.position, k, v)
-        
+
         # Diffusion
         if 'diffusion' in d:
             for k, v in d['diffusion'].items():
                 setattr(config.diffusion, k, v)
-        
+
         # Expression
         if 'expression' in d:
             for k, v in d['expression'].items():
                 setattr(config.expression, k, v)
-        
+
         # Stochastic
         if 'stochastic' in d:
             for k, v in d['stochastic'].items():
                 setattr(config.stochastic, k, v)
-        
+
         # Analysis
         if 'analysis' in d:
             for k, v in d['analysis'].items():
                 if k == 'weight_type':
                     v = WeightType(v)
                 setattr(config.analysis, k, v)
-        
+
         # Output dir
         config.output_dir = d.get('output_dir')
-        
+
         return config

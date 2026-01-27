@@ -4,7 +4,7 @@ KD-tree based neighbor search for scalable spatial analysis.
 Uses scipy.spatial.cKDTree for O(n log n) neighbor queries.
 """
 
-from typing import List, Tuple, Optional
+from typing import List, Tuple
 import numpy as np
 from scipy.spatial import cKDTree
 

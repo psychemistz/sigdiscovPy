@@ -7,10 +7,9 @@ The spatial lag is the weighted average of neighboring values:
 This is the core operation for spatial correlation analysis.
 """
 
-from typing import Union
 import numpy as np
 from scipy import sparse as sp_sparse
-from sigdiscovpy.gpu.backend import get_array_module, GPU_AVAILABLE, ensure_numpy
+from sigdiscovpy.gpu.backend import GPU_AVAILABLE, ensure_numpy
 
 
 def compute_spatial_lag(

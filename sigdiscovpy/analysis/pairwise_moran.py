@@ -4,10 +4,10 @@ Pairwise Moran's I matrix computation.
 Computes the gene x gene spatial correlation matrix.
 """
 
-from typing import Optional, Union, Literal
+from typing import Optional
 import numpy as np
 from scipy import sparse as sp_sparse
-from sigdiscovpy.gpu.backend import get_array_module, GPU_AVAILABLE, ensure_numpy
+from sigdiscovpy.gpu.backend import GPU_AVAILABLE, ensure_numpy
 from sigdiscovpy.core.normalization import standardize_matrix
 from sigdiscovpy.core.weights import create_gaussian_weights, get_weight_sum
 
@@ -122,8 +122,6 @@ def _pairwise_moran_cpu(
     chunk_size: Optional[int] = None,
 ) -> np.ndarray:
     """CPU implementation of pairwise Moran's I."""
-    n_genes = expr.shape[0]
-
     # Compute Z @ W: (n_genes x n_spots) @ (n_spots x n_spots) = (n_genes x n_spots)
     if sp_sparse.issparse(W):
         # Sparse: expr @ W.T (since W is symmetric)
@@ -155,7 +153,8 @@ def _pairwise_moran_gpu(
             free_mem, _ = cp.cuda.runtime.memGetInfo()
             bytes_per_element = 8  # float64
             # Each gene needs n_spots * 8 bytes, plus intermediate results
-            chunk_size = min(n_genes, max(100, int(free_mem * 0.3 / (n_spots * bytes_per_element * 4))))
+            mem_per_gene = n_spots * bytes_per_element * 4
+            chunk_size = min(n_genes, max(100, int(free_mem * 0.3 / mem_per_gene)))
         except Exception:
             chunk_size = 1000
 
@@ -230,8 +229,6 @@ def pairwise_moran_directional(
         sender_expr = sender_expr.T
     if receiver_expr.shape[0] == n_receivers:
         receiver_expr = receiver_expr.T
-
-    n_genes = sender_expr.shape[0]
 
     # Normalize
     if normalize:

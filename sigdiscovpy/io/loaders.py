@@ -2,7 +2,7 @@
 Data loading utilities for various spatial transcriptomics formats.
 """
 
-from typing import Optional, Tuple, Dict, Any
+from typing import Optional, Dict, Any
 import numpy as np
 from pathlib import Path
 

@@ -5,7 +5,6 @@ Global normalization is CRITICAL for spatial correlation analysis.
 All functions compute mean/std across ALL cells, not subsets.
 """
 
-from typing import Union
 import numpy as np
 from sigdiscovpy.gpu.backend import get_array_module, ensure_numpy
 

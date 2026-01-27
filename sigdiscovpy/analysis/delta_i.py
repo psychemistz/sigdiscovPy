@@ -108,7 +108,6 @@ def find_peak_radius(
         Peak radius for each gene.
     """
     radii_sorted = sorted(radii)
-    n_genes = metrics_by_radius[radii_sorted[0]].shape[1]
 
     # Stack metrics: (n_radii, n_genes)
     all_metrics = np.stack([

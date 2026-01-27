@@ -7,8 +7,7 @@ transcriptomics data with known ground truth for method validation.
 
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Any
-import json
+from typing import Dict, Any
 
 import numpy as np
 import pandas as pd
@@ -143,7 +142,7 @@ class UnifiedSimulation:
         if self.config.output_dir:
             self._save_results(results)
 
-        logger.info(f"\nSimulation complete.")
+        logger.info("\nSimulation complete.")
         if self.config.output_dir:
             logger.info(f"Results saved to {self.config.output_dir}")
 

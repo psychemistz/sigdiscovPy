@@ -7,7 +7,7 @@ Implements:
 - Bonferroni
 """
 
-from typing import Literal, Union
+from typing import Literal
 import numpy as np
 
 

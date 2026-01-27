@@ -13,7 +13,7 @@ Weight matrix formula:
 from typing import Optional, Tuple, Union
 import numpy as np
 from scipy import sparse as sp_sparse
-from sigdiscovpy.gpu.backend import get_array_module, GPU_AVAILABLE, ensure_numpy
+from sigdiscovpy.gpu.backend import GPU_AVAILABLE
 
 
 def _compute_distances_chunked(
@@ -29,7 +29,6 @@ def _compute_distances_chunked(
     Returns sparse coordinate format (rows, cols, distances).
     """
     n1 = coords1.shape[0]
-    n2 = coords2.shape[0]
 
     rows_list = []
     cols_list = []
@@ -43,7 +42,7 @@ def _compute_distances_chunked(
         coords1_chunk = coords1[chunk_start:chunk_end]
 
         # Compute distances: (chunk_size x n2)
-        # Use explicit reshape for proper broadcasting: (chunk_size, 1) - (1, n2) -> (chunk_size, n2)
+        # Use explicit reshape for broadcasting: (chunk_size, 1) - (1, n2)
         diff_x = coords1_chunk[:, 0:1] - coords2[:, 0].reshape(1, -1)
         diff_y = coords1_chunk[:, 1:2] - coords2[:, 1].reshape(1, -1)
         dist_sq = diff_x**2 + diff_y**2
@@ -170,7 +169,6 @@ def _create_gaussian_weights_gpu(
     Uses try-finally to ensure GPU memory cleanup on exceptions.
     """
     import cupy as cp
-    import cupyx.scipy.sparse as cp_sparse
 
     n = coords.shape[0]
     coords_gpu = None
@@ -233,7 +231,9 @@ def _create_gaussian_weights_gpu(
         all_cols = cp.concatenate(cols_list).get()
         all_weights = cp.concatenate(weights_list).get().astype(np.float64)
 
-        W = sp_sparse.csr_matrix((all_weights, (all_rows, all_cols)), shape=(n, n), dtype=np.float64)
+        W = sp_sparse.csr_matrix(
+            (all_weights, (all_rows, all_cols)), shape=(n, n), dtype=np.float64
+        )
 
         if row_normalize:
             W = row_normalize_weights(W)

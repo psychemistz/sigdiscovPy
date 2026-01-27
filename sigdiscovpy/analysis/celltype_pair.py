@@ -4,9 +4,8 @@ Cell type pair spatial interaction analysis.
 Analyzes spatial interactions between all sender-receiver cell type pairs.
 """
 
-from typing import Optional, List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple
 import numpy as np
-from sigdiscovpy.gpu.backend import get_array_module, GPU_AVAILABLE, ensure_numpy
 from sigdiscovpy.core.normalization import standardize_matrix
 from sigdiscovpy.core.weights import create_directional_weights
 from sigdiscovpy.core.spatial_lag import compute_spatial_lag_batch

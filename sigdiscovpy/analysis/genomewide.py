@@ -6,8 +6,6 @@ Port of R genomewide_analysis() with GPU acceleration.
 
 from typing import Optional, List, Dict, Any, Literal
 import numpy as np
-from pathlib import Path
-from sigdiscovpy.gpu.backend import get_array_module, GPU_AVAILABLE, ensure_numpy
 from sigdiscovpy.core.normalization import standardize_matrix
 from sigdiscovpy.core.weights import create_gaussian_weights, create_ring_weights
 from sigdiscovpy.core.spatial_lag import compute_spatial_lag_batch

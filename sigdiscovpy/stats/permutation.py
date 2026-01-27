@@ -6,7 +6,7 @@ GPU-accelerated permutation tests for Moran's I and I_ND.
 
 from typing import Optional, Literal, Tuple
 import numpy as np
-from sigdiscovpy.gpu.backend import get_array_module, GPU_AVAILABLE, ensure_numpy
+from sigdiscovpy.gpu.backend import GPU_AVAILABLE, ensure_numpy
 from sigdiscovpy.core.metrics import compute_moran_from_lag, compute_ind_from_lag
 
 
@@ -58,7 +58,6 @@ def permutation_test(
     """
     z_f = np.asarray(z_f, dtype=np.float64)
     lag_g = np.asarray(lag_g, dtype=np.float64)
-    n = len(z_f)
 
     if random_seed is not None:
         np.random.seed(random_seed)
@@ -213,8 +212,6 @@ def batch_permutation_test(
     """
     z_f = np.asarray(z_f, dtype=np.float64)
     lag_G = np.asarray(lag_G, dtype=np.float64)
-    n = len(z_f)
-    n_genes = lag_G.shape[1]
 
     if random_seed is not None:
         np.random.seed(random_seed)

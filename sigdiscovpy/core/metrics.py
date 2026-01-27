@@ -8,7 +8,7 @@ Implements:
 These functions operate on pre-computed spatial lags for efficiency.
 """
 
-from typing import Union, Literal
+from typing import Literal
 import numpy as np
 from sigdiscovpy.gpu.backend import get_array_module, ensure_numpy
 
@@ -102,9 +102,9 @@ def compute_moran_from_lag(
     lag_g_arr = xp.asarray(lag_g, dtype=xp.float64)
 
     n = z_f_arr.shape[0]
-    I = float(xp.dot(z_f_arr, lag_g_arr)) / n
+    moran_i = float(xp.dot(z_f_arr, lag_g_arr)) / n
 
-    return I
+    return moran_i
 
 
 def compute_ind_from_lag(
@@ -316,8 +316,6 @@ def compute_metrics_matrix(
     lag_G_arr = xp.asarray(lag_G, dtype=xp.float64)
 
     n = Z_f_arr.shape[0]
-    n_factors = Z_f_arr.shape[1]
-    n_genes = lag_G_arr.shape[1]
 
     if metric == "moran":
         # Moran's I: result = (Z_f.T @ lag_G) / n

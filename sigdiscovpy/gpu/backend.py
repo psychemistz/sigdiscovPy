@@ -5,7 +5,6 @@ Provides a unified interface for NumPy and CuPy operations,
 allowing seamless switching between CPU and GPU computation.
 """
 
-from typing import Union
 import numpy as np
 
 # Try to import CuPy
