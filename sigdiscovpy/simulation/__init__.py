@@ -25,7 +25,24 @@ from sigdiscovpy.simulation.config.dataclasses import (
     StochasticConfig,
 )
 from sigdiscovpy.simulation.config.presets import SimulationPresets
+
+# Real data support
+from sigdiscovpy.simulation.realdata import (
+    SpatialData,
+    SpatialLayout,
+    SpatialLayoutGenerator,
+    load_anndata,
+    load_cosmx,
+    load_csv,
+)
 from sigdiscovpy.simulation.runner import UnifiedSimulation
+
+# Visualization
+from sigdiscovpy.simulation.visualization import (
+    plot_ind_curve,
+    plot_simulation_summary,
+    plot_spatial_cells,
+)
 
 __all__ = [
     # Config
@@ -40,4 +57,15 @@ __all__ = [
     "SimulationPresets",
     # Runner
     "UnifiedSimulation",
+    # Real data
+    "SpatialData",
+    "SpatialLayout",
+    "SpatialLayoutGenerator",
+    "load_anndata",
+    "load_cosmx",
+    "load_csv",
+    # Visualization
+    "plot_spatial_cells",
+    "plot_ind_curve",
+    "plot_simulation_summary",
 ]
