@@ -39,17 +39,60 @@ Both Python and R use **global normalization**:
 - Verified weight sums match between Python and R
 - Sparse matrix implementation validated
 
+## CosMx Single-Cell Validation
+
+**Dataset**: Lung5_Rep1 (NanoString CosMx)
+- 98,002 cells
+- 960 genes
+- 22 cell types
+
+### Core Functions (5,000 cell subset)
+
+| Function | Result | Status |
+|----------|--------|--------|
+| `standardize_matrix` | mean=2.09e-18, std=1.0 | PASS |
+| `create_gaussian_weights` | sum=24,681,842 (r=50) | PASS |
+| `compute_spatial_lag` | range=[-17.14, 4.95] | PASS |
+| `compute_moran_from_lag` | 0.029735 | PASS |
+| `compute_ind_from_lag` | 0.020915 | PASS |
+
+### Pairwise Moran (20 genes, 3,000 cells)
+
+- **Time**: 0.34s
+- **Result shape**: (20, 20)
+- **Diagonal range**: [-0.0003, -0.0003]
+- **Off-diagonal range**: [-0.0001, 0.0000]
+
+### Cell Type Directional Analysis
+
+- **Analysis**: tumor 5 → fibroblast
+- **Senders**: 2,000 cells (subsampled)
+- **Receivers**: 2,000 cells (subsampled)
+- **Time**: 0.17s
+- **Value range**: [-0.0500, 0.0516]
+
+### R Cross-Validation (10 genes, 1,000 cells)
+
+| Metric | Python | R | Difference | Status |
+|--------|--------|---|------------|--------|
+| Moran I[0,0] | -0.0009807113 | -0.0009816324 | 9.21e-07 | PASS |
+| Moran I[0,1] | 0.0000278999 | 0.0000279739 | 7.40e-08 | PASS |
+
+Note: Weight sums differ because R row-normalizes by default (sum=n_cells), Python doesn't.
+
 ## Test Coverage
 
-- 60 tests passing
+- **60 tests passing** (1.38s)
 - Coverage across all core modules:
-  - metrics.py
-  - normalization.py
-  - weights.py
-  - spatial_lag.py
-  - pairwise_moran.py
-  - fdr.py
-  - permutation.py
+
+| Module | Tests |
+|--------|-------|
+| test_cross_validation.py | 6 |
+| test_fdr.py | 11 |
+| test_metrics.py | 14 |
+| test_normalization.py | 10 |
+| test_pairwise_moran.py | 9 |
+| test_weights.py | 10 |
 
 ## Conclusion
 
