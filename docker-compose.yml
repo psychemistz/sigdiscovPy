@@ -1,0 +1,131 @@
+# =============================================================================
+# Docker Compose for sigdiscovPy
+#
+# Usage:
+#   docker-compose up -d sigdiscovpy          # Start CPU container
+#   docker-compose up -d sigdiscovpy-gpu      # Start GPU container
+#   docker-compose up sigdiscovpy-jupyter     # Start Jupyter (CPU)
+#   docker-compose exec sigdiscovpy bash      # Enter running container
+#   docker-compose down                       # Stop all containers
+# =============================================================================
+
+version: '3.8'
+
+services:
+  # ===========================================================================
+  # CPU Container (Python only)
+  # ===========================================================================
+  sigdiscovpy:
+    image: psychemistz/sigdiscovpy:latest
+    container_name: sigdiscovpy
+    volumes:
+      - .:/workspace
+      - sigdiscovpy-cache:/root/.cache
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+
+  # ===========================================================================
+  # GPU Container (Python + CuPy)
+  # ===========================================================================
+  sigdiscovpy-gpu:
+    image: psychemistz/sigdiscovpy:gpu
+    container_name: sigdiscovpy-gpu
+    volumes:
+      - .:/workspace
+      - sigdiscovpy-cache:/root/.cache
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  # ===========================================================================
+  # CPU + R Container (Python + R sigdiscov)
+  # ===========================================================================
+  sigdiscovpy-r:
+    image: psychemistz/sigdiscovpy:with-r
+    container_name: sigdiscovpy-r
+    volumes:
+      - .:/workspace
+      - sigdiscovpy-cache:/root/.cache
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+
+  # ===========================================================================
+  # GPU + R Container (Full stack)
+  # ===========================================================================
+  sigdiscovpy-gpu-r:
+    image: psychemistz/sigdiscovpy:gpu-with-r
+    container_name: sigdiscovpy-gpu-r
+    volumes:
+      - .:/workspace
+      - sigdiscovpy-cache:/root/.cache
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  # ===========================================================================
+  # Jupyter Lab (CPU)
+  # ===========================================================================
+  sigdiscovpy-jupyter:
+    image: psychemistz/sigdiscovpy:latest
+    container_name: sigdiscovpy-jupyter
+    volumes:
+      - .:/workspace
+      - sigdiscovpy-cache:/root/.cache
+    working_dir: /workspace
+    ports:
+      - "8888:8888"
+    command: jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token=''
+
+  # ===========================================================================
+  # Jupyter Lab (GPU)
+  # ===========================================================================
+  sigdiscovpy-jupyter-gpu:
+    image: psychemistz/sigdiscovpy:gpu
+    container_name: sigdiscovpy-jupyter-gpu
+    volumes:
+      - .:/workspace
+      - sigdiscovpy-cache:/root/.cache
+    working_dir: /workspace
+    ports:
+      - "8889:8888"
+    command: jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token=''
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  # ===========================================================================
+  # Jupyter Lab (CPU + R)
+  # ===========================================================================
+  sigdiscovpy-jupyter-r:
+    image: psychemistz/sigdiscovpy:with-r
+    container_name: sigdiscovpy-jupyter-r
+    volumes:
+      - .:/workspace
+      - sigdiscovpy-cache:/root/.cache
+    working_dir: /workspace
+    ports:
+      - "8890:8888"
+    command: jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token=''
+
+volumes:
+  sigdiscovpy-cache:
