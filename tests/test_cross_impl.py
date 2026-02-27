@@ -10,20 +10,20 @@ produce numerically identical results for:
   5. Edge cases (constant vectors, zero-norm, perfect correlation)
 """
 
-import subprocess
 import shutil
+import subprocess
 import tempfile
 from pathlib import Path
 
 import numpy as np
 import pytest
 
-from sigdiscovpy.core.normalization import standardize_vector, standardize_matrix
 from sigdiscovpy.core.metrics import (
     compute_ind_from_lag,
-    compute_moran_from_lag,
     compute_metric_batch,
+    compute_moran_from_lag,
 )
+from sigdiscovpy.core.normalization import standardize_matrix, standardize_vector
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -35,7 +35,9 @@ try:
     if HAS_R:
         _probe = subprocess.run(
             ["R", "--no-save", "--slave", "-e", "library(sigdiscov); cat('ok')"],
-            capture_output=True, text=True, timeout=60,
+            capture_output=True,
+            text=True,
+            timeout=60,
         )
         HAS_R_PKG = _probe.stdout.strip().endswith("ok")
     else:
@@ -43,9 +45,7 @@ try:
 except Exception:
     HAS_R_PKG = False
 
-requires_r = pytest.mark.skipif(
-    not HAS_R_PKG, reason="R or sigdiscov R package not available"
-)
+requires_r = pytest.mark.skipif(not HAS_R_PKG, reason="R or sigdiscov R package not available")
 
 
 def run_r(code: str) -> str:
@@ -55,7 +55,9 @@ def run_r(code: str) -> str:
         f.flush()
         result = subprocess.run(
             ["R", "--no-save", "--slave", "-f", f.name],
-            capture_output=True, text=True, timeout=120,
+            capture_output=True,
+            text=True,
+            timeout=120,
         )
     Path(f.name).unlink(missing_ok=True)
     if result.returncode != 0:
@@ -93,9 +95,9 @@ def _build_gaussian_annular_weights(sender_pos, receiver_pos, radius, inner_radi
     """Build Gaussian-annular weight matrix (sim_parse10m reference)."""
     dx = sender_pos[:, 0:1] - receiver_pos[:, 0].reshape(1, -1)
     dy = sender_pos[:, 1:2] - receiver_pos[:, 1].reshape(1, -1)
-    dists = np.sqrt(dx ** 2 + dy ** 2)
+    dists = np.sqrt(dx**2 + dy**2)
     sigma = radius / 3.0
-    W = np.exp(-dists ** 2 / (2 * sigma ** 2))
+    W = np.exp(-(dists**2) / (2 * sigma**2))
     W = W * ((dists <= radius) & (dists > inner_radius))
     rs = W.sum(axis=1, keepdims=True)
     rs[rs == 0] = 1.0
@@ -106,7 +108,7 @@ def _build_binary_weights(sender_pos, receiver_pos, radius, inner_radius=0.0):
     """Build binary (circular) weight matrix."""
     dx = sender_pos[:, 0:1] - receiver_pos[:, 0].reshape(1, -1)
     dy = sender_pos[:, 1:2] - receiver_pos[:, 1].reshape(1, -1)
-    dists = np.sqrt(dx ** 2 + dy ** 2)
+    dists = np.sqrt(dx**2 + dy**2)
     W = ((dists <= radius) & (dists > inner_radius)).astype(float)
     rs = W.sum(axis=1, keepdims=True)
     rs[rs == 0] = 1.0
@@ -126,6 +128,7 @@ def _fmt_mat(m, order="C"):
 # ===========================================================================
 # TEST 1: Z-SCORE STANDARDIZATION
 # ===========================================================================
+
 
 class TestZScore:
     """Population std (ddof=0) z-score across all implementations."""
@@ -191,6 +194,7 @@ class TestZScore:
 # TEST 2: WEIGHT MATRIX — GAUSSIAN-ANNULAR (ANNULAR)
 # ===========================================================================
 
+
 class TestGaussianAnnularWeights:
     """Gaussian-annular weight matrix across implementations."""
 
@@ -225,6 +229,7 @@ class TestGaussianAnnularWeights:
 # ===========================================================================
 # TEST 3: WEIGHT MATRIX — BINARY CIRCULAR (DISK & RING)
 # ===========================================================================
+
 
 class TestBinaryCircularWeights:
     """Binary (circular/ring) weight matrix across implementations."""
@@ -284,6 +289,7 @@ class TestBinaryCircularWeights:
 # TEST 4: I_ND BATCH — GAUSSIAN-ANNULAR WEIGHTS
 # ===========================================================================
 
+
 class TestINDBatchGaussianAnnular:
     """I_ND batch computation with Gaussian-annular weights."""
 
@@ -340,6 +346,7 @@ class TestINDBatchGaussianAnnular:
 # ===========================================================================
 # TEST 5: I_ND BATCH — BINARY CIRCULAR WEIGHTS
 # ===========================================================================
+
 
 class TestINDBatchBinaryCircular:
     """I_ND batch computation with binary (circular) weights."""
@@ -436,6 +443,7 @@ class TestINDBatchBinaryCircular:
 # TEST 6: END-TO-END I_ND (standardize + weights + metric)
 # ===========================================================================
 
+
 class TestEndToEndIND:
     """Full pipeline: raw expression -> z-score -> weights -> I_ND."""
 
@@ -457,9 +465,7 @@ class TestEndToEndIND:
         else:
             W, _ = _build_binary_weights(s_pos, r_pos, radius, inner)
 
-        sim_ind = np.array([
-            _ref_ind(z_f, W @ z_recv[g]) for g in range(n_g)
-        ])
+        sim_ind = np.array([_ref_ind(z_f, W @ z_recv[g]) for g in range(n_g)])
         return expr_raw, s_pos, r_pos, z_f, z_recv, W, sim_ind, n_s, n_r, n_g, n_all, radius, inner
 
     # --- Gaussian-annular ---
@@ -471,7 +477,9 @@ class TestEndToEndIND:
 
     @requires_r
     def test_gaussian_annular_sim_vs_r(self):
-        expr_raw, s_pos, r_pos, _, _, _, sim_ind, n_s, n_r, n_g, n_all, radius, inner = self._setup("gaussian_annular")
+        expr_raw, s_pos, r_pos, _, _, _, sim_ind, n_s, n_r, n_g, n_all, radius, inner = self._setup(
+            "gaussian_annular"
+        )
         r_out = run_r(f"""
         library(sigdiscov)
         expr_raw <- matrix(c({_fmt_mat(expr_raw)}), nrow={n_g}, ncol={n_all}, byrow=TRUE)
@@ -506,7 +514,9 @@ class TestEndToEndIND:
 
     @requires_r
     def test_binary_circular_sim_vs_r(self):
-        expr_raw, s_pos, r_pos, _, _, _, sim_ind, n_s, n_r, n_g, n_all, radius, inner = self._setup("binary")
+        expr_raw, s_pos, r_pos, _, _, _, sim_ind, n_s, n_r, n_g, n_all, radius, inner = self._setup(
+            "binary"
+        )
         r_out = run_r(f"""
         library(sigdiscov)
         expr_raw <- matrix(c({_fmt_mat(expr_raw)}), nrow={n_g}, ncol={n_all}, byrow=TRUE)
@@ -534,6 +544,7 @@ class TestEndToEndIND:
 # TEST 7: R compute_ind_single (GAUSSIAN-ANNULAR & ANNULAR)
 # ===========================================================================
 
+
 class TestComputeIndSingleR:
     """Test R compute_ind_single function against Python for both weight types."""
 
@@ -560,8 +571,13 @@ class TestComputeIndSingleR:
         all_pos, f_expr, r_expr, n_s, n_r, n_all = self._setup()
         radius = 500.0
         py_ind = self._python_ind(
-            all_pos, f_expr, r_expr, n_s, radius,
-            _build_gaussian_annular_weights, inner_radius=0.0,
+            all_pos,
+            f_expr,
+            r_expr,
+            n_s,
+            radius,
+            _build_gaussian_annular_weights,
+            inner_radius=0.0,
         )
         r_out = run_r(f"""
         library(sigdiscov)
@@ -583,8 +599,13 @@ class TestComputeIndSingleR:
         radius, annular_w = 700.0, 400.0
         inner = max(0, radius - annular_w)
         py_ind = self._python_ind(
-            all_pos, f_expr, r_expr, n_s, radius,
-            _build_binary_weights, inner_radius=inner,
+            all_pos,
+            f_expr,
+            r_expr,
+            n_s,
+            radius,
+            _build_binary_weights,
+            inner_radius=inner,
         )
         r_out = run_r(f"""
         library(sigdiscov)
@@ -604,6 +625,7 @@ class TestComputeIndSingleR:
 # ===========================================================================
 # TEST 8: DE LOG2FC
 # ===========================================================================
+
 
 class TestDELog2FC:
     """Pseudocount consistency across implementations."""
@@ -642,6 +664,7 @@ class TestDELog2FC:
 # ===========================================================================
 # TEST 9: EDGE CASES
 # ===========================================================================
+
 
 class TestEdgeCases:
 
