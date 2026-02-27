@@ -123,8 +123,6 @@ class ExpressionGenerator:
             0, self.expr.sigma_f, n_active
         )
         if silent_indices is not None and len(silent_indices) > 0:
-            from sigdiscovpy.simulation.config.dataclasses import CellTypeConfig
-
             # silent_expr_zero is handled by the runner, here we just assign basal
             factor_expr[silent_indices] = self.expr.F_basal * np.random.lognormal(
                 0, self.expr.sigma_f, len(silent_indices)

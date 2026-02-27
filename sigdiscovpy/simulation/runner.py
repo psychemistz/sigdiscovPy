@@ -135,12 +135,10 @@ class UnifiedSimulation:
             fixed_silent_indices = fixed_sender_indices[n_active:]
 
             if position_dict is not None:
-                from sigdiscovpy.simulation.domain.spatial import SenderPositionGenerator as SPG
-
                 active_assignments, sender_pos_list = self._distribute_active_senders(
                     n_active, position_dict
                 )
-                for i, (pn, coord) in enumerate(sender_pos_list):
+                for i, (_pn, coord) in enumerate(sender_pos_list):
                     all_positions[fixed_active_indices[i]] = coord
 
         # Save config if output_dir specified
@@ -231,7 +229,7 @@ class UnifiedSimulation:
                     active_assignments, sender_pos_list = self._distribute_active_senders(
                         n_active, position_dict
                     )
-                    for i, (pn, coord) in enumerate(sender_pos_list):
+                    for i, (_pn, coord) in enumerate(sender_pos_list):
                         all_pos[active_indices[i]] = coord
 
         # Select receivers
@@ -242,11 +240,9 @@ class UnifiedSimulation:
 
         # Split receivers into active/silent if needed
         active_receiver_indices = None
-        silent_receiver_indices = None
         if cfg.cell_types.receiver_silent_fraction > 0:
             n_active_recv = int(n_receivers * (1 - cfg.cell_types.receiver_silent_fraction))
             active_receiver_indices = receiver_indices[:n_active_recv]
-            silent_receiver_indices = receiver_indices[n_active_recv:]
 
         # ===== Factor Expression =====
         expressing_mask = None
@@ -511,7 +507,7 @@ class UnifiedSimulation:
         if n_active < P:
             raise ValueError("n_active must be >= number of positions")
 
-        assignments = {name: 1 for name in position_names}
+        assignments = dict.fromkeys(position_names, 1)
         sender_positions = [(name, position_dict[name]) for name in position_names]
 
         remaining = n_active - P
@@ -580,7 +576,7 @@ class UnifiedSimulation:
 
         if len(active_pos) > 0 and position_dict is not None:
             unique_positions = {}
-            for i, (pos, expr) in enumerate(zip(active_pos, active_expr)):
+            for pos, expr in zip(active_pos, active_expr):
                 pos_tuple = tuple(pos)
                 if pos_tuple not in unique_positions:
                     unique_positions[pos_tuple] = {"pos": pos, "total_expr": 0}

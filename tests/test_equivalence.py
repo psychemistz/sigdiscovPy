@@ -20,6 +20,14 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from sigdiscovpy.simulation.config.presets import SimulationPresets
+from sigdiscovpy.simulation.expression.vst import (
+    apply_vst_log1p,
+    apply_vst_pearson,
+    apply_vst_shifted_log,
+)
+from sigdiscovpy.simulation.runner import UnifiedSimulation
+
 # Add reference simulation directory to path for imports
 REFERENCE_DIR = Path(__file__).resolve().parents[3] / "sigdiscov" / "simulation"
 HAS_REFERENCE = (REFERENCE_DIR / "core.py").exists()
@@ -29,14 +37,6 @@ if HAS_REFERENCE:
 requires_reference = pytest.mark.skipif(
     not HAS_REFERENCE, reason=f"Reference scripts not found at {REFERENCE_DIR}"
 )
-
-from sigdiscovpy.simulation.config.presets import SimulationPresets
-from sigdiscovpy.simulation.expression.vst import (
-    apply_vst_log1p,
-    apply_vst_pearson,
-    apply_vst_shifted_log,
-)
-from sigdiscovpy.simulation.runner import UnifiedSimulation
 
 # =============================================================================
 # Unit Tests for Individual Functions
@@ -361,9 +361,6 @@ class TestEquivalence:
         cfg.max_radius = 2000.0
 
         # Limit distances
-        d_start = (
-            cfg.test_distance_start if cfg.test_distance_start is not None else cfg.BANDWIDTH / 2
-        )
         cfg.test_distance_end = 2000.0
 
         import tempfile
