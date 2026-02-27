@@ -57,7 +57,7 @@ def wilcoxon_test(
     fdr_method: str = "bh",
     fdr_threshold: float = 0.05,
     min_log2fc: float = 0.0,
-    pseudocount: float = 1.0,
+    pseudocount: float = 1e-9,
 ) -> DEResult:
     """
     Perform Wilcoxon rank-sum test for differential expression.
