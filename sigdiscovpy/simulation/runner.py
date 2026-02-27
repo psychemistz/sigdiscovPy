@@ -58,7 +58,9 @@ class UnifiedSimulation:
         self.position_gen = SenderPositionGenerator(config.position, config.domain)
         self.diffusion = DiffusionSolver(config.diffusion)
         self.expression = ExpressionGenerator(
-            config.expression, config.stochastic, seed=config.domain.random_seed,
+            config.expression,
+            config.stochastic,
+            seed=config.domain.random_seed,
             diffusion_Kd=config.diffusion.Kd,
         )
 
@@ -92,7 +94,7 @@ class UnifiedSimulation:
         n_total = cfg.domain.n_cells
         center = np.array(cfg.domain.center)
         max_radius = cfg.domain.max_radius
-        domain_area = np.pi * max_radius ** 2
+        domain_area = np.pi * max_radius**2
         n_senders = cfg.cell_types.n_active_senders + cfg.cell_types.n_silent_senders
         n_active = cfg.cell_types.n_active_senders
 
@@ -134,6 +136,7 @@ class UnifiedSimulation:
 
             if position_dict is not None:
                 from sigdiscovpy.simulation.domain.spatial import SenderPositionGenerator as SPG
+
                 active_assignments, sender_pos_list = self._distribute_active_senders(
                     n_active, position_dict
                 )
@@ -152,10 +155,20 @@ class UnifiedSimulation:
             logger.info(f"\nProcessing {frac*100:.0f}% Receivers...")
 
             result = self._run_single_fraction(
-                frac, n_total, center, max_radius, domain_area,
-                n_senders, n_active, all_positions_orig,
-                position_dict, active_assignments, sender_pos_list,
-                fixed_sender_indices, fixed_active_indices, fixed_silent_indices,
+                frac,
+                n_total,
+                center,
+                max_radius,
+                domain_area,
+                n_senders,
+                n_active,
+                all_positions_orig,
+                position_dict,
+                active_assignments,
+                sender_pos_list,
+                fixed_sender_indices,
+                fixed_active_indices,
+                fixed_silent_indices,
                 radii,
             )
             results[frac] = result
@@ -168,10 +181,21 @@ class UnifiedSimulation:
         return results
 
     def _run_single_fraction(
-        self, frac, n_total, center, max_radius, domain_area,
-        n_senders, n_active, all_positions_orig,
-        position_dict, active_assignments, sender_pos_list,
-        fixed_sender_indices, fixed_active_indices, fixed_silent_indices,
+        self,
+        frac,
+        n_total,
+        center,
+        max_radius,
+        domain_area,
+        n_senders,
+        n_active,
+        all_positions_orig,
+        position_dict,
+        active_assignments,
+        sender_pos_list,
+        fixed_sender_indices,
+        fixed_active_indices,
+        fixed_silent_indices,
         radii,
     ) -> dict[str, Any]:
         """Run simulation for a single receiver fraction, matching reference exactly."""
@@ -270,7 +294,10 @@ class UnifiedSimulation:
         # ===== Diffusion =====
         n_density = n_receivers / domain_area
 
-        if pos_mode in (SenderPositionMode.FIXED_5, SenderPositionMode.RANDOM) and position_dict is not None:
+        if (
+            pos_mode in (SenderPositionMode.FIXED_5, SenderPositionMode.RANDOM)
+            and position_dict is not None
+        ):
             # Multi-position: use solve_concentration_field_MM_multipos logic
             p_r_eff = 1.0
             if cfg.expression.response_model == "bernoulli_constant":
@@ -279,9 +306,14 @@ class UnifiedSimulation:
                 p_r_eff = cfg.stochastic.p_respond_max
 
             concentrations, lambda_val = self._solve_multipos(
-                all_pos[sender_indices], factor_expr_for_diffusion[sender_indices],
-                all_pos, n_density, position_dict, active_assignments,
-                cfg.diffusion.secretion_rate, p_r_eff,
+                all_pos[sender_indices],
+                factor_expr_for_diffusion[sender_indices],
+                all_pos,
+                n_density,
+                position_dict,
+                active_assignments,
+                cfg.diffusion.secretion_rate,
+                p_r_eff,
                 cfg.diffusion.active_threshold,
             )
         else:
@@ -293,10 +325,17 @@ class UnifiedSimulation:
             else:
                 n_density_eff = n_density
 
-            at = cfg.expression.vst_active_threshold if cfg.expression.vst_method else cfg.diffusion.active_threshold
+            at = (
+                cfg.expression.vst_active_threshold
+                if cfg.expression.vst_method
+                else cfg.diffusion.active_threshold
+            )
             concentrations, lambda_val = self._solve_single(
-                all_pos[sender_indices], factor_expr_for_diffusion[sender_indices],
-                all_pos, n_density_eff, at,
+                all_pos[sender_indices],
+                factor_expr_for_diffusion[sender_indices],
+                all_pos,
+                n_density_eff,
+                at,
             )
 
         # ===== Response Expression =====
@@ -322,13 +361,13 @@ class UnifiedSimulation:
             )
             responsive_expr_for_ind = responsive_expr
         elif cfg.expression.response_model == "bernoulli_hill":
-            responsive_expr, responding_mask, response_probs = self.expression._response_bernoulli_hill(
-                n_total, receiver_indices, concentrations
+            responsive_expr, responding_mask, response_probs = (
+                self.expression._response_bernoulli_hill(n_total, receiver_indices, concentrations)
             )
             responsive_expr_for_ind = responsive_expr
         elif cfg.expression.response_model == "stochastic_hill":
-            responsive_expr, responding_mask, response_probs = self.expression._response_stochastic_hill(
-                n_total, receiver_indices, concentrations
+            responsive_expr, responding_mask, response_probs = (
+                self.expression._response_stochastic_hill(n_total, receiver_indices, concentrations)
             )
             responsive_expr_for_ind = responsive_expr
         else:
@@ -364,8 +403,12 @@ class UnifiedSimulation:
             curve = []
             for d in radii:
                 val, n_conn = ind_computer._compute_simple(
-                    sender_indices, ri_for_ind, all_pos,
-                    factor_expr_for_ind, responsive_expr_for_ind, d
+                    sender_indices,
+                    ri_for_ind,
+                    all_pos,
+                    factor_expr_for_ind,
+                    responsive_expr_for_ind,
+                    d,
                 )
                 curve.append({"distance": d, "I_ND": val, "n_connections": n_conn})
             ind_curves[method] = curve
@@ -415,20 +458,19 @@ class UnifiedSimulation:
         """Generate positions using np.random (matching reference)."""
         angles = np.random.rand(n_total) * 2 * np.pi
         radii = np.sqrt(np.random.rand(n_total)) * max_radius
-        return np.column_stack([
-            center[0] + radii * np.cos(angles),
-            center[1] + radii * np.sin(angles)
-        ])
+        return np.column_stack(
+            [center[0] + radii * np.cos(angles), center[1] + radii * np.sin(angles)]
+        )
 
     @staticmethod
     def _get_5_positions(center, offset_distance):
         """Get 5 fixed positions matching reference get_5_positions()."""
         return {
-            'C': np.array(center, dtype=float),
-            'W': np.array([center[0] - offset_distance, center[1]]),
-            'E': np.array([center[0] + offset_distance, center[1]]),
-            'N': np.array([center[0], center[1] + offset_distance]),
-            'S': np.array([center[0], center[1] - offset_distance]),
+            "C": np.array(center, dtype=float),
+            "W": np.array([center[0] - offset_distance, center[1]]),
+            "E": np.array([center[0] + offset_distance, center[1]]),
+            "N": np.array([center[0], center[1] + offset_distance]),
+            "S": np.array([center[0], center[1] - offset_distance]),
         }
 
     @staticmethod
@@ -452,7 +494,7 @@ class UnifiedSimulation:
                 valid = min(distances) >= min_separation
 
             if valid:
-                pos_label = f'P{len(positions) + 1}'
+                pos_label = f"P{len(positions) + 1}"
                 positions[pos_label] = new_pos
                 coords_list.append(new_pos)
 
@@ -480,11 +522,14 @@ class UnifiedSimulation:
 
         return assignments, sender_positions
 
-    def _solve_single(self, sender_positions, sender_expression, cell_positions,
-                       n_density_eff, active_threshold):
+    def _solve_single(
+        self, sender_positions, sender_expression, cell_positions, n_density_eff, active_threshold
+    ):
         """Solve concentration for single source, matching reference."""
         cfg = self.config.diffusion
-        lambda_val = np.sqrt(cfg.D * cfg.Kd / (n_density_eff * cfg.k_max)) if n_density_eff > 0 else np.inf
+        lambda_val = (
+            np.sqrt(cfg.D * cfg.Kd / (n_density_eff * cfg.k_max)) if n_density_eff > 0 else np.inf
+        )
         n_cells = len(cell_positions)
         concentrations = np.zeros(n_cells)
 
@@ -501,16 +546,31 @@ class UnifiedSimulation:
             near_mask = r < 1e-3
             far_mask = ~near_mask
             concentrations[near_mask] = total_factor * 100
-            concentrations[far_mask] = total_factor * np.exp(-r[far_mask] / lambda_val) / np.sqrt(r[far_mask])
+            concentrations[far_mask] = (
+                total_factor * np.exp(-r[far_mask] / lambda_val) / np.sqrt(r[far_mask])
+            )
 
         return concentrations, lambda_val
 
-    def _solve_multipos(self, sender_positions, sender_expression, cell_positions,
-                         n_density, position_dict, active_assignments,
-                         secretion_rate, p_r_eff, active_threshold):
+    def _solve_multipos(
+        self,
+        sender_positions,
+        sender_expression,
+        cell_positions,
+        n_density,
+        position_dict,
+        active_assignments,
+        secretion_rate,
+        p_r_eff,
+        active_threshold,
+    ):
         """Solve concentration for multi-position, matching reference."""
         cfg = self.config.diffusion
-        lambda_val = np.sqrt(cfg.D * cfg.Kd / (n_density * cfg.k_max * p_r_eff)) if n_density * p_r_eff > 0 else np.inf
+        lambda_val = (
+            np.sqrt(cfg.D * cfg.Kd / (n_density * cfg.k_max * p_r_eff))
+            if n_density * p_r_eff > 0
+            else np.inf
+        )
         n_cells = len(cell_positions)
         concentrations = np.zeros(n_cells)
 
@@ -523,19 +583,21 @@ class UnifiedSimulation:
             for i, (pos, expr) in enumerate(zip(active_pos, active_expr)):
                 pos_tuple = tuple(pos)
                 if pos_tuple not in unique_positions:
-                    unique_positions[pos_tuple] = {'pos': pos, 'total_expr': 0}
-                unique_positions[pos_tuple]['total_expr'] += expr
+                    unique_positions[pos_tuple] = {"pos": pos, "total_expr": 0}
+                unique_positions[pos_tuple]["total_expr"] += expr
 
             for pos_data in unique_positions.values():
-                source_pos = pos_data['pos']
-                total_factor = pos_data['total_expr'] * secretion_rate
+                source_pos = pos_data["pos"]
+                total_factor = pos_data["total_expr"] * secretion_rate
 
                 # Vectorized distance computation
                 r = np.sqrt(np.sum((cell_positions - source_pos) ** 2, axis=1))
                 near_mask = r < 1e-3
                 far_mask = ~near_mask
                 concentrations[near_mask] += total_factor * 100
-                concentrations[far_mask] += total_factor * np.exp(-r[far_mask] / lambda_val) / np.sqrt(r[far_mask])
+                concentrations[far_mask] += (
+                    total_factor * np.exp(-r[far_mask] / lambda_val) / np.sqrt(r[far_mask])
+                )
 
         return concentrations, lambda_val
 

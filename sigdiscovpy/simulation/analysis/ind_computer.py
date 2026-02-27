@@ -297,7 +297,7 @@ class INDComputer:
         elif self.config.weight_type == WeightType.GAUSSIAN_ANNULAR:
             # Reference: sigma = outer_radius / sigma_fraction
             sigma = radius / self.config.sigma_fraction
-            W = np.exp(-dists**2 / (2 * sigma**2))
+            W = np.exp(-(dists**2) / (2 * sigma**2))
             # Apply annular mask
             inner_radius = radius - self.config.bandwidth
             W[(dists <= inner_radius) | (dists > radius)] = 0

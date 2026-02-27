@@ -240,7 +240,8 @@ class TestExpressionGenerator:
         )
 
         assert factor_expr.shape == (100,)
-        assert expressing_mask.shape == (5,)
+        # Deterministic model returns None for expressing_mask
+        assert expressing_mask is None
 
     def test_factor_expression_positive(self):
         expr_config = ExpressionConfig()
@@ -268,8 +269,9 @@ class TestExpressionGenerator:
         )
 
         assert response_expr.shape == (100,)
-        assert responding_mask.shape == (5,)
-        assert response_probs.shape == (5,)
+        # Deterministic model returns None for responding_mask and response_probs
+        assert responding_mask is None
+        assert response_probs is None
 
     def test_noise_only(self):
         expr_config = ExpressionConfig()
@@ -350,27 +352,26 @@ class TestUnifiedSimulation:
         assert "receiver_indices" in result
         assert "factor_expr" in result
         assert "response_expr" in result
-        assert "ind_curve" in result
+        assert "ind_curves" in result
         assert "lambda" in result
 
-        assert len(result["ind_curve"]) == 2
+        assert "ring" in result["ind_curves"]
+        assert len(result["ind_curves"]["ring"]) == 2
 
     def test_simulation_reproducibility(self):
         config1 = SimulationPresets.small_scale()
         config1.domain.n_cells = 100
-        config1.domain.random_seed = 42
         config1.analysis.radii = [100]
 
         config2 = SimulationPresets.small_scale()
         config2.domain.n_cells = 100
-        config2.domain.random_seed = 42
         config2.analysis.radii = [100]
 
         sim1 = UnifiedSimulation(config1)
         sim2 = UnifiedSimulation(config2)
 
-        result1 = sim1.run_single(receiver_fraction=0.2)
-        result2 = sim2.run_single(receiver_fraction=0.2)
+        result1 = sim1.run_single(receiver_fraction=0.2, seed=42)
+        result2 = sim2.run_single(receiver_fraction=0.2, seed=42)
 
         np.testing.assert_array_equal(result1["positions"], result2["positions"])
         np.testing.assert_array_equal(result1["sender_indices"], result2["sender_indices"])
@@ -383,11 +384,11 @@ class TestUnifiedSimulation:
         sim = UnifiedSimulation(config)
         result = sim.run_single(receiver_fraction=0.2)
 
-        ind_curve = result["ind_curve"]
+        ind_curve = result["ind_curves"]["ring"]
         assert len(ind_curve) == 4
 
         for i, point in enumerate(ind_curve):
-            assert point["radius"] == config.analysis.radii[i]
+            assert point["distance"] == config.analysis.radii[i]
             assert isinstance(point["I_ND"], (int, float))
             assert isinstance(point["n_connections"], int)
 
@@ -411,7 +412,7 @@ class TestIntegration:
 
         for _frac, data in results.items():
             assert "lambda" in data
-            assert "ind_curve" in data
+            assert "ind_curves" in data
             assert "n_expressing" in data
             assert "n_responding" in data
 
@@ -437,5 +438,5 @@ class TestIntegration:
 
         # Strong signal should generally produce higher absolute I_ND
         # (though this is stochastic, so we just check both run successfully)
-        assert result_strong["ind_curve"][0]["I_ND"] is not None
-        assert result_weak["ind_curve"][0]["I_ND"] is not None
+        assert result_strong["ind_curves"]["ring"][0]["I_ND"] is not None
+        assert result_weak["ind_curves"]["ring"][0]["I_ND"] is not None

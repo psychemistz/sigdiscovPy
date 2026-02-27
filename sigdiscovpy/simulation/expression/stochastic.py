@@ -106,7 +106,10 @@ class ExpressionGenerator:
             raise ValueError(f"Unknown factor_model: {model}")
 
     def _factor_deterministic(
-        self, n_total: int, n_active: int, active_indices: np.ndarray,
+        self,
+        n_total: int,
+        n_active: int,
+        active_indices: np.ndarray,
         silent_indices: np.ndarray = None,
     ) -> tuple[np.ndarray, None]:
         """Deterministic factor expression matching reference unified_sim.py.
@@ -121,6 +124,7 @@ class ExpressionGenerator:
         )
         if silent_indices is not None and len(silent_indices) > 0:
             from sigdiscovpy.simulation.config.dataclasses import CellTypeConfig
+
             # silent_expr_zero is handled by the runner, here we just assign basal
             factor_expr[silent_indices] = self.expr.F_basal * np.random.lognormal(
                 0, self.expr.sigma_f, len(silent_indices)
@@ -128,7 +132,10 @@ class ExpressionGenerator:
         return factor_expr, None
 
     def _factor_stochastic(
-        self, n_total: int, n_active: int, active_indices: np.ndarray,
+        self,
+        n_total: int,
+        n_active: int,
+        active_indices: np.ndarray,
     ) -> tuple[np.ndarray, np.ndarray]:
         """Stochastic factor expression matching reference generate_stochastic_expression().
 
@@ -144,8 +151,8 @@ class ExpressionGenerator:
             expr_cv = self.stoch.expr_cv
 
             if self.stoch.use_gamma_dist:
-                shape = 1.0 / (expr_cv ** 2)
-                scale = self.expr.F_high * (expr_cv ** 2)
+                shape = 1.0 / (expr_cv**2)
+                scale = self.expr.F_high * (expr_cv**2)
                 expr_values = np.random.gamma(shape, scale, n_expressing)
             else:
                 sigma_ln = np.sqrt(np.log(1 + expr_cv**2))
@@ -159,29 +166,32 @@ class ExpressionGenerator:
         return factor_expr, expressing_mask
 
     def _factor_stochastic_ref(
-        self, n_total: int, n_active: int, active_indices: np.ndarray,
+        self,
+        n_total: int,
+        n_active: int,
+        active_indices: np.ndarray,
     ) -> tuple[np.ndarray, np.ndarray]:
         """Stochastic ref factor expression matching reference generate_stochastic_expression_ref().
 
         F_i = S_i * F_high * LN(0, sigma_f^2) + (1-S_i) * F_basal * LN(0, sigma_f_basal^2)
         """
-        factor_expr = self.expr.F_basal * np.random.lognormal(
-            0, self.stoch.sigma_f_basal, n_total
-        )
+        factor_expr = self.expr.F_basal * np.random.lognormal(0, self.stoch.sigma_f_basal, n_total)
 
         expressing_mask = np.random.rand(n_active) < self.stoch.p_sender_express
         n_expressing = np.sum(expressing_mask)
 
         if n_expressing > 0:
             expressing_indices = active_indices[expressing_mask]
-            factor_expr[expressing_indices] = (
-                self.expr.F_high * np.random.lognormal(0, self.expr.sigma_f, n_expressing)
+            factor_expr[expressing_indices] = self.expr.F_high * np.random.lognormal(
+                0, self.expr.sigma_f, n_expressing
             )
 
         return factor_expr, expressing_mask
 
     def _factor_bernoulli_mixture(
-        self, n_total: int, sender_indices: np.ndarray,
+        self,
+        n_total: int,
+        sender_indices: np.ndarray,
     ) -> tuple[np.ndarray, np.ndarray]:
         """Bernoulli mixture factor expression matching reference generate_bernoulli_factor_expression().
 
@@ -260,8 +270,11 @@ class ExpressionGenerator:
             raise ValueError(f"Unknown response_model: {model}")
 
     def _response_deterministic(
-        self, n_total: int, receiver_indices: np.ndarray,
-        concentrations: np.ndarray, active_receiver_indices: np.ndarray = None,
+        self,
+        n_total: int,
+        receiver_indices: np.ndarray,
+        concentrations: np.ndarray,
+        active_receiver_indices: np.ndarray = None,
     ) -> tuple[np.ndarray, None, None]:
         """Deterministic response matching reference unified_sim.py.
 
@@ -277,7 +290,9 @@ class ExpressionGenerator:
         return responsive_expr, None, None
 
     def _response_stochastic_hill(
-        self, n_total: int, receiver_indices: np.ndarray,
+        self,
+        n_total: int,
+        receiver_indices: np.ndarray,
         concentrations: np.ndarray,
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Stochastic Hill response matching reference generate_stochastic_response().
@@ -290,9 +305,7 @@ class ExpressionGenerator:
         Kd = self.diffusion_Kd
         n_receivers = len(receiver_indices)
 
-        responsive_expr = self.expr.R_basal * np.random.lognormal(
-            0, self.stoch.sigma_r_b, n_total
-        )
+        responsive_expr = self.expr.R_basal * np.random.lognormal(0, self.stoch.sigma_r_b, n_total)
 
         C = concentrations[receiver_indices]
         hill_coef = self.stoch.response_hill_coef
@@ -308,8 +321,8 @@ class ExpressionGenerator:
         n_non_responding = np.sum(non_responding_mask)
         if n_non_responding > 0:
             non_responding_indices = receiver_indices[non_responding_mask]
-            responsive_expr[non_responding_indices] = (
-                self.expr.R_basal * np.random.lognormal(0, self.stoch.sigma_r_b, n_non_responding)
+            responsive_expr[non_responding_indices] = self.expr.R_basal * np.random.lognormal(
+                0, self.stoch.sigma_r_b, n_non_responding
             )
 
         # Responding receivers
@@ -318,14 +331,16 @@ class ExpressionGenerator:
             C_responding = C[responding_mask]
             activation = C_responding / (Kd + C_responding)
             mean_expr = self.expr.R_basal * (1 + self.expr.fold_change * activation)
-            responsive_expr[responding_indices] = (
-                mean_expr * np.random.lognormal(0, self.expr.sigma_r, n_responding)
+            responsive_expr[responding_indices] = mean_expr * np.random.lognormal(
+                0, self.expr.sigma_r, n_responding
             )
 
         return responsive_expr, responding_mask, response_probs
 
     def _response_bernoulli_constant(
-        self, n_total: int, receiver_indices: np.ndarray,
+        self,
+        n_total: int,
+        receiver_indices: np.ndarray,
         concentrations: np.ndarray,
     ) -> tuple[np.ndarray, np.ndarray, None]:
         """Bernoulli constant response matching reference generate_bernoulli_response_constant().
@@ -352,8 +367,10 @@ class ExpressionGenerator:
         C_receivers = concentrations[receiver_indices]
         activation = C_receivers / (Kd + C_receivers)
 
-        activated_expr = self.expr.R_basal * (1 + self.expr.fold_change * activation) * np.random.lognormal(
-            0, self.expr.sigma_r, n_receivers
+        activated_expr = (
+            self.expr.R_basal
+            * (1 + self.expr.fold_change * activation)
+            * np.random.lognormal(0, self.expr.sigma_r, n_receivers)
         )
         basal_expr = self.expr.R_basal * np.random.lognormal(0, self.stoch.sigma_r_b, n_receivers)
         responsive_expr[receiver_indices] = B * activated_expr + (1 - B) * basal_expr
@@ -362,7 +379,9 @@ class ExpressionGenerator:
         return responsive_expr, responding_mask, None
 
     def _response_bernoulli_hill(
-        self, n_total: int, receiver_indices: np.ndarray,
+        self,
+        n_total: int,
+        receiver_indices: np.ndarray,
         concentrations: np.ndarray,
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Bernoulli Hill response matching reference generate_bernoulli_response_hill().
@@ -394,8 +413,10 @@ class ExpressionGenerator:
 
         activation = C_receivers / (Kd + C_receivers)
 
-        activated_expr = self.expr.R_basal * (1 + self.expr.fold_change * activation) * np.random.lognormal(
-            0, self.expr.sigma_r, n_receivers
+        activated_expr = (
+            self.expr.R_basal
+            * (1 + self.expr.fold_change * activation)
+            * np.random.lognormal(0, self.expr.sigma_r, n_receivers)
         )
         basal_expr = self.expr.R_basal * np.random.lognormal(0, self.stoch.sigma_r_b, n_receivers)
         responsive_expr[receiver_indices] = B * activated_expr + (1 - B) * basal_expr
@@ -408,8 +429,12 @@ class ExpressionGenerator:
     # =========================================================================
 
     def generate_vst_factor(
-        self, n_total: int, n_active: int, active_indices: np.ndarray,
-        sender_indices: np.ndarray, silent_indices: np.ndarray = None,
+        self,
+        n_total: int,
+        n_active: int,
+        active_indices: np.ndarray,
+        sender_indices: np.ndarray,
+        silent_indices: np.ndarray = None,
     ) -> tuple[np.ndarray, None]:
         """Generate raw factor expression for VST mode (before transform).
 
@@ -434,7 +459,9 @@ class ExpressionGenerator:
         return factor_raw, None
 
     def generate_vst_response(
-        self, n_total: int, receiver_indices: np.ndarray,
+        self,
+        n_total: int,
+        receiver_indices: np.ndarray,
         concentrations: np.ndarray,
     ) -> tuple[np.ndarray, None, None]:
         """Generate raw response expression for VST mode (before transform).

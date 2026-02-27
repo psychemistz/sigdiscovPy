@@ -80,7 +80,8 @@ jobs:
           config.analysis.radii = [100, 200]
           sim = UnifiedSimulation(config)
           result = sim.run_single(receiver_fraction=0.2)
-          assert len(result['ind_curve']) == 2
+          assert 'ring' in result['ind_curves']
+          assert len(result['ind_curves']['ring']) == 2
           print('Simulation smoke test OK')
           "
 

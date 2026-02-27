@@ -43,18 +43,25 @@ class SimulationPresets:
         return SimulationConfig(
             domain=DomainConfig(center=(0.0, 0.0)),
             cell_types=CellTypeConfig(
-                n_active_senders=20, n_silent_senders=0,
+                n_active_senders=20,
+                n_silent_senders=0,
                 receiver_fractions=[0.02, 0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80],
             ),
             position=PositionConfig(mode=SenderPositionMode.CENTER),
             diffusion=DiffusionConfig(D=100.0, k_max=10.0, Kd=30.0, active_threshold=1.0),
             expression=ExpressionConfig(
-                F_basal=0.1, F_high=10.0, R_basal=0.1, fold_change=2.0,
-                sigma_f=0.1, sigma_r=0.1,
-                factor_model="deterministic", response_model="deterministic",
+                F_basal=0.1,
+                F_high=10.0,
+                R_basal=0.1,
+                fold_change=2.0,
+                sigma_f=0.1,
+                sigma_r=0.1,
+                factor_model="deterministic",
+                response_model="deterministic",
             ),
             analysis=AnalysisConfig(
-                bandwidth=100.0, ind_methods=["ring"],
+                bandwidth=100.0,
+                ind_methods=["ring"],
                 radii=list(np.arange(50, 5001, 25)),
             ),
         )
@@ -70,18 +77,25 @@ class SimulationPresets:
         return SimulationConfig(
             domain=DomainConfig(center=(0.0, 0.0)),
             cell_types=CellTypeConfig(
-                n_active_senders=20, n_silent_senders=0,
+                n_active_senders=20,
+                n_silent_senders=0,
                 receiver_fractions=[0.02, 0.05, 0.10, 0.20, 0.30, 0.50],
             ),
             position=PositionConfig(mode=SenderPositionMode.CENTER),
             diffusion=DiffusionConfig(D=100.0, k_max=10.0, Kd=30.0, active_threshold=1.0),
             expression=ExpressionConfig(
-                F_basal=0.1, F_high=10.0, R_basal=0.1, fold_change=2.0,
-                sigma_f=0.1, sigma_r=0.1,
-                factor_model="deterministic", response_model="deterministic",
+                F_basal=0.1,
+                F_high=10.0,
+                R_basal=0.1,
+                fold_change=2.0,
+                sigma_f=0.1,
+                sigma_r=0.1,
+                factor_model="deterministic",
+                response_model="deterministic",
             ),
             analysis=AnalysisConfig(
-                bandwidth=100.0, sigma_fraction=3.0,
+                bandwidth=100.0,
+                sigma_fraction=3.0,
                 ind_methods=["ring", "gaussian_annular"],
                 radii=list(np.arange(110, 3001, 25)),
             ),
@@ -93,22 +107,31 @@ class SimulationPresets:
         return SimulationConfig(
             domain=DomainConfig(center=(0.0, 0.0)),
             cell_types=CellTypeConfig(
-                n_active_senders=20, n_silent_senders=0,
+                n_active_senders=20,
+                n_silent_senders=0,
                 receiver_fractions=[0.02, 0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80],
             ),
             position=PositionConfig(mode=SenderPositionMode.CENTER),
             diffusion=DiffusionConfig(D=100.0, k_max=10.0, Kd=30.0, active_threshold=1.0),
             expression=ExpressionConfig(
-                F_basal=0.1, F_high=10.0, R_basal=0.1, fold_change=2.0,
-                sigma_f=0.1, sigma_r=0.01,
-                factor_model="bernoulli_mixture", response_model="bernoulli_constant",
+                F_basal=0.1,
+                F_high=10.0,
+                R_basal=0.1,
+                fold_change=2.0,
+                sigma_f=0.1,
+                sigma_r=0.01,
+                factor_model="bernoulli_mixture",
+                response_model="bernoulli_constant",
             ),
             stochastic=StochasticConfig(
-                p_s=1.0, sigma_f_b=0.1,
-                p_r=1.0, sigma_r_b=0.1,
+                p_s=1.0,
+                sigma_f_b=0.1,
+                p_r=1.0,
+                sigma_r_b=0.1,
             ),
-            analysis=AnalysisConfig(bandwidth=100.0, ind_methods=["ring"],
-                                     radii=list(np.arange(50, 5001, 25))),
+            analysis=AnalysisConfig(
+                bandwidth=100.0, ind_methods=["ring"], radii=list(np.arange(50, 5001, 25))
+            ),
         )
 
     @staticmethod
@@ -117,22 +140,33 @@ class SimulationPresets:
         return SimulationConfig(
             domain=DomainConfig(center=(0.0, 0.0)),
             cell_types=CellTypeConfig(
-                n_active_senders=20, n_silent_senders=0,
+                n_active_senders=20,
+                n_silent_senders=0,
                 receiver_fractions=[0.02, 0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80],
             ),
             position=PositionConfig(mode=SenderPositionMode.CENTER),
             diffusion=DiffusionConfig(D=100.0, k_max=10.0, Kd=30.0, active_threshold=1.0),
             expression=ExpressionConfig(
-                F_basal=0.1, F_high=10.0, R_basal=0.1, fold_change=2.0,
-                sigma_f=0.1, sigma_r=0.01,
-                factor_model="bernoulli_mixture", response_model="bernoulli_hill",
+                F_basal=0.1,
+                F_high=10.0,
+                R_basal=0.1,
+                fold_change=2.0,
+                sigma_f=0.1,
+                sigma_r=0.01,
+                factor_model="bernoulli_mixture",
+                response_model="bernoulli_hill",
             ),
             stochastic=StochasticConfig(
-                p_s=1.0, sigma_f_b=0.1,
-                p_r_max=1.0, K_p=1.0, hill_n=1.0, sigma_r_b=0.1,
+                p_s=1.0,
+                sigma_f_b=0.1,
+                p_r_max=1.0,
+                K_p=1.0,
+                hill_n=1.0,
+                sigma_r_b=0.1,
             ),
-            analysis=AnalysisConfig(bandwidth=100.0, ind_methods=["ring"],
-                                     radii=list(np.arange(50, 5001, 25))),
+            analysis=AnalysisConfig(
+                bandwidth=100.0, ind_methods=["ring"], radii=list(np.arange(50, 5001, 25))
+            ),
         )
 
     @staticmethod
@@ -141,18 +175,25 @@ class SimulationPresets:
         return SimulationConfig(
             domain=DomainConfig(center=(0.0, 0.0)),
             cell_types=CellTypeConfig(
-                n_active_senders=20, n_silent_senders=100,
+                n_active_senders=20,
+                n_silent_senders=100,
                 receiver_fractions=[0.02, 0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80],
             ),
             position=PositionConfig(mode=SenderPositionMode.CENTER_SILENT_DISTRIBUTED),
             diffusion=DiffusionConfig(D=100.0, k_max=10.0, Kd=30.0, active_threshold=1.0),
             expression=ExpressionConfig(
-                F_basal=0.1, F_high=100.0, R_basal=0.1, fold_change=50.0,
-                sigma_f=0.1, sigma_r=0.1,
-                factor_model="deterministic", response_model="deterministic",
+                F_basal=0.1,
+                F_high=100.0,
+                R_basal=0.1,
+                fold_change=50.0,
+                sigma_f=0.1,
+                sigma_r=0.1,
+                factor_model="deterministic",
+                response_model="deterministic",
             ),
-            analysis=AnalysisConfig(bandwidth=100.0, ind_methods=["ring"],
-                                     radii=list(np.arange(50, 5001, 25))),
+            analysis=AnalysisConfig(
+                bandwidth=100.0, ind_methods=["ring"], radii=list(np.arange(50, 5001, 25))
+            ),
         )
 
     @staticmethod
@@ -161,19 +202,26 @@ class SimulationPresets:
         return SimulationConfig(
             domain=DomainConfig(center=(0.0, 0.0)),
             cell_types=CellTypeConfig(
-                n_active_senders=20, n_silent_senders=20,
+                n_active_senders=20,
+                n_silent_senders=20,
                 receiver_fractions=[0.02, 0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80],
                 receiver_silent_fraction=0.8,
             ),
             position=PositionConfig(mode=SenderPositionMode.CENTER_SILENT_DISTRIBUTED),
             diffusion=DiffusionConfig(D=100.0, k_max=10.0, Kd=30.0, active_threshold=1.0),
             expression=ExpressionConfig(
-                F_basal=0.1, F_high=10.0, R_basal=0.1, fold_change=2.0,
-                sigma_f=0.1, sigma_r=0.1,
-                factor_model="deterministic", response_model="deterministic",
+                F_basal=0.1,
+                F_high=10.0,
+                R_basal=0.1,
+                fold_change=2.0,
+                sigma_f=0.1,
+                sigma_r=0.1,
+                factor_model="deterministic",
+                response_model="deterministic",
             ),
             analysis=AnalysisConfig(
-                bandwidth=100.0, ind_methods=["ring"],
+                bandwidth=100.0,
+                ind_methods=["ring"],
                 ind_uses_active_receivers_only=True,
                 radii=list(np.arange(50, 5001, 25)),
             ),
@@ -185,24 +233,37 @@ class SimulationPresets:
         return SimulationConfig(
             domain=DomainConfig(center=(0.0, 0.0)),
             cell_types=CellTypeConfig(
-                n_active_senders=20, n_silent_senders=40,
+                n_active_senders=20,
+                n_silent_senders=40,
                 receiver_fractions=[0.02, 0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80],
                 fix_senders_across_fractions=True,
             ),
             position=PositionConfig(
                 mode=SenderPositionMode.RANDOM,
-                n_positions=20, min_separation=800.0, offset_distance=3000.0,
+                n_positions=20,
+                min_separation=800.0,
+                offset_distance=3000.0,
             ),
             diffusion=DiffusionConfig(
-                D=100.0, k_max=10.0, Kd=30.0, secretion_rate=100.0, active_threshold=1.0,
+                D=100.0,
+                k_max=10.0,
+                Kd=30.0,
+                secretion_rate=100.0,
+                active_threshold=1.0,
             ),
             expression=ExpressionConfig(
-                F_basal=0.1, F_high=1.5, R_basal=0.1, fold_change=2.0,
-                sigma_f=0.1, sigma_r=0.1,
-                factor_model="deterministic", response_model="deterministic",
+                F_basal=0.1,
+                F_high=1.5,
+                R_basal=0.1,
+                fold_change=2.0,
+                sigma_f=0.1,
+                sigma_r=0.1,
+                factor_model="deterministic",
+                response_model="deterministic",
             ),
-            analysis=AnalysisConfig(bandwidth=100.0, ind_methods=["ring"],
-                                     radii=list(np.arange(50, 5001, 25))),
+            analysis=AnalysisConfig(
+                bandwidth=100.0, ind_methods=["ring"], radii=list(np.arange(50, 5001, 25))
+            ),
         )
 
     @staticmethod
@@ -211,28 +272,42 @@ class SimulationPresets:
         return SimulationConfig(
             domain=DomainConfig(center=(0.0, 0.0)),
             cell_types=CellTypeConfig(
-                n_active_senders=200, n_silent_senders=100,
+                n_active_senders=200,
+                n_silent_senders=100,
                 receiver_fractions=[0.02, 0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80],
                 fix_senders_across_fractions=True,
             ),
             position=PositionConfig(
                 mode=SenderPositionMode.RANDOM,
-                n_positions=1, min_separation=0.0, offset_distance=3000.0,
+                n_positions=1,
+                min_separation=0.0,
+                offset_distance=3000.0,
             ),
             diffusion=DiffusionConfig(
-                D=100.0, k_max=50.0, Kd=30.0,
-                secretion_rate=0.5, active_threshold=0.2,
+                D=100.0,
+                k_max=50.0,
+                Kd=30.0,
+                secretion_rate=0.5,
+                active_threshold=0.2,
             ),
             expression=ExpressionConfig(
-                F_basal=0.1, F_high=1.5, R_basal=0.1, fold_change=2.0,
-                sigma_f=0.1, sigma_r=0.1,
-                factor_model="stochastic", response_model="deterministic",
+                F_basal=0.1,
+                F_high=1.5,
+                R_basal=0.1,
+                fold_change=2.0,
+                sigma_f=0.1,
+                sigma_r=0.1,
+                factor_model="stochastic",
+                response_model="deterministic",
             ),
             stochastic=StochasticConfig(
-                p_sender_express=0.5, expr_cv=0.5, use_gamma_dist=False,
+                p_sender_express=0.5,
+                expr_cv=0.5,
+                use_gamma_dist=False,
             ),
-            analysis=AnalysisConfig(bandwidth=20.0, ind_methods=["ring"],
-                                     radii=list(np.arange(10, 5001, 25))),
+            analysis=AnalysisConfig(
+                bandwidth=20.0, ind_methods=["ring"], radii=list(np.arange(10, 5001, 25))
+            ),
         )
 
     @staticmethod
@@ -241,29 +316,45 @@ class SimulationPresets:
         return SimulationConfig(
             domain=DomainConfig(center=(0.0, 0.0)),
             cell_types=CellTypeConfig(
-                n_active_senders=200, n_silent_senders=100,
+                n_active_senders=200,
+                n_silent_senders=100,
                 receiver_fractions=[0.02, 0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80],
                 fix_senders_across_fractions=True,
             ),
             position=PositionConfig(
                 mode=SenderPositionMode.RANDOM,
-                n_positions=1, min_separation=0.0, offset_distance=3000.0,
+                n_positions=1,
+                min_separation=0.0,
+                offset_distance=3000.0,
             ),
             diffusion=DiffusionConfig(
-                D=100.0, k_max=10.0, Kd=1.0,
-                secretion_rate=1.0, active_threshold=0.2,
+                D=100.0,
+                k_max=10.0,
+                Kd=1.0,
+                secretion_rate=1.0,
+                active_threshold=0.2,
             ),
             expression=ExpressionConfig(
-                F_basal=0.1, F_high=10.0, R_basal=0.1, fold_change=10.0,
-                sigma_f=0.1, sigma_r=0.1, sigma_f_basal=0.1,
-                factor_model="stochastic_ref", response_model="stochastic_hill",
+                F_basal=0.1,
+                F_high=10.0,
+                R_basal=0.1,
+                fold_change=10.0,
+                sigma_f=0.1,
+                sigma_r=0.1,
+                sigma_f_basal=0.1,
+                factor_model="stochastic_ref",
+                response_model="stochastic_hill",
             ),
             stochastic=StochasticConfig(
-                p_sender_express=0.9, sigma_f_basal=0.1,
-                p_respond_max=1.0, response_hill_coef=1.0, sigma_r_b=0.1,
+                p_sender_express=0.9,
+                sigma_f_basal=0.1,
+                p_respond_max=1.0,
+                response_hill_coef=1.0,
+                sigma_r_b=0.1,
             ),
-            analysis=AnalysisConfig(bandwidth=20.0, ind_methods=["ring"],
-                                     radii=list(np.arange(10, 5001, 25))),
+            analysis=AnalysisConfig(
+                bandwidth=20.0, ind_methods=["ring"], radii=list(np.arange(10, 5001, 25))
+            ),
         )
 
     @staticmethod
@@ -272,19 +363,26 @@ class SimulationPresets:
         return SimulationConfig(
             domain=DomainConfig(center=(2500.0, 2500.0)),
             cell_types=CellTypeConfig(
-                n_active_senders=20, n_silent_senders=20,
+                n_active_senders=20,
+                n_silent_senders=20,
                 receiver_fractions=[0.10, 0.20, 0.30, 0.40, 0.50],
                 silent_expr_zero=True,
             ),
             position=PositionConfig(mode=SenderPositionMode.CENTER),
             diffusion=DiffusionConfig(D=1060.0, k_max=300.0, Kd=5.0, active_threshold=1.0),
             expression=ExpressionConfig(
-                F_basal=0.1, F_high=2.0, R_basal=2.0, fold_change=2.0,
-                sigma_f=0.1, sigma_r=0.1,
-                factor_model="deterministic", response_model="deterministic",
+                F_basal=0.1,
+                F_high=2.0,
+                R_basal=2.0,
+                fold_change=2.0,
+                sigma_f=0.1,
+                sigma_r=0.1,
+                factor_model="deterministic",
+                response_model="deterministic",
             ),
-            analysis=AnalysisConfig(bandwidth=100.0, ind_methods=["ring"],
-                                     radii=list(np.arange(50, 5001, 25))),
+            analysis=AnalysisConfig(
+                bandwidth=100.0, ind_methods=["ring"], radii=list(np.arange(50, 5001, 25))
+            ),
         )
 
     @staticmethod
@@ -293,19 +391,26 @@ class SimulationPresets:
         return SimulationConfig(
             domain=DomainConfig(center=(2500.0, 2500.0)),
             cell_types=CellTypeConfig(
-                n_active_senders=20, n_silent_senders=200,
+                n_active_senders=20,
+                n_silent_senders=200,
                 receiver_fractions=[0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80],
                 silent_expr_zero=True,
             ),
             position=PositionConfig(mode=SenderPositionMode.CENTER_SILENT_DISTRIBUTED),
             diffusion=DiffusionConfig(D=1060.0, k_max=300.0, Kd=5.0, active_threshold=1.0),
             expression=ExpressionConfig(
-                F_basal=0.1, F_high=2.0, R_basal=2.0, fold_change=2.0,
-                sigma_f=0.1, sigma_r=0.1,
-                factor_model="deterministic", response_model="deterministic",
+                F_basal=0.1,
+                F_high=2.0,
+                R_basal=2.0,
+                fold_change=2.0,
+                sigma_f=0.1,
+                sigma_r=0.1,
+                factor_model="deterministic",
+                response_model="deterministic",
             ),
             analysis=AnalysisConfig(
-                bandwidth=100.0, ind_methods=["ring"],
+                bandwidth=100.0,
+                ind_methods=["ring"],
                 radii=list(np.arange(50, 5001, 25)),
             ),
         )
@@ -316,22 +421,31 @@ class SimulationPresets:
         return SimulationConfig(
             domain=DomainConfig(center=(0.0, 0.0)),
             cell_types=CellTypeConfig(
-                n_active_senders=20, n_silent_senders=0,
+                n_active_senders=20,
+                n_silent_senders=0,
                 receiver_fractions=[0.02, 0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80],
             ),
             position=PositionConfig(mode=SenderPositionMode.CENTER),
             diffusion=DiffusionConfig(D=100.0, k_max=10.0, Kd=30.0, active_threshold=1.0),
             expression=ExpressionConfig(
-                F_basal=0.5, F_high=50.0, R_basal=0.5, fold_change=5.0,
-                sigma_f=0.8, sigma_r=0.8,
-                factor_model="deterministic", response_model="deterministic",
-                vst_method="log1p", vst_active_threshold=5.0,
+                F_basal=0.5,
+                F_high=50.0,
+                R_basal=0.5,
+                fold_change=5.0,
+                sigma_f=0.8,
+                sigma_r=0.8,
+                factor_model="deterministic",
+                response_model="deterministic",
+                vst_method="log1p",
+                vst_active_threshold=5.0,
             ),
             stochastic=StochasticConfig(
-                zero_inflate_factor=0.7, zero_inflate_response=0.5,
+                zero_inflate_factor=0.7,
+                zero_inflate_response=0.5,
             ),
-            analysis=AnalysisConfig(bandwidth=100.0, ind_methods=["ring"],
-                                     radii=list(np.arange(50, 5001, 25))),
+            analysis=AnalysisConfig(
+                bandwidth=100.0, ind_methods=["ring"], radii=list(np.arange(50, 5001, 25))
+            ),
         )
 
     # =========================================================================
@@ -522,11 +636,31 @@ class SimulationPresets:
     def list_presets(cls) -> list:
         """List all available preset names."""
         return [
-            "demo", "demo1", "demo1b", "demo1_stc", "demo1_stc2",
-            "demo2a", "demo2b", "demo2c", "demo3", "demo3b",
-            "demo_det", "demo_det_dec", "demo_vst",
-            "default", "strong_signal", "weak_signal", "high_noise", "low_noise",
-            "large_scale", "small_scale", "long_range", "short_range",
-            "stochastic_full", "multi_position", "fixed_5_positions",
-            "annular_weights", "gaussian_weights",
+            "demo",
+            "demo1",
+            "demo1b",
+            "demo1_stc",
+            "demo1_stc2",
+            "demo2a",
+            "demo2b",
+            "demo2c",
+            "demo3",
+            "demo3b",
+            "demo_det",
+            "demo_det_dec",
+            "demo_vst",
+            "default",
+            "strong_signal",
+            "weak_signal",
+            "high_noise",
+            "low_noise",
+            "large_scale",
+            "small_scale",
+            "long_range",
+            "short_range",
+            "stochastic_full",
+            "multi_position",
+            "fixed_5_positions",
+            "annular_weights",
+            "gaussian_weights",
         ]

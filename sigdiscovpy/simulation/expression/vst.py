@@ -30,7 +30,9 @@ def apply_vst_log1p(raw_expr: np.ndarray) -> np.ndarray:
     return log_expr - np.mean(log_expr)
 
 
-def apply_vst_pearson(raw_expr: np.ndarray, theta: float = 100, clip_value: float = 10) -> np.ndarray:
+def apply_vst_pearson(
+    raw_expr: np.ndarray, theta: float = 100, clip_value: float = 10
+) -> np.ndarray:
     """Pearson residual VST normalization (sctransform-style).
 
     Parameters
@@ -48,7 +50,7 @@ def apply_vst_pearson(raw_expr: np.ndarray, theta: float = 100, clip_value: floa
         Pearson residuals.
     """
     mu = np.mean(raw_expr) + 1e-10
-    variance = mu + (mu ** 2) / theta
+    variance = mu + (mu**2) / theta
     residuals = (raw_expr - mu) / np.sqrt(variance)
     return np.clip(residuals, -clip_value, clip_value)
 

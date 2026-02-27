@@ -22,7 +22,13 @@ import pytest
 
 # Add reference simulation directory to path for imports
 REFERENCE_DIR = Path(__file__).resolve().parents[3] / "sigdiscov" / "simulation"
-sys.path.insert(0, str(REFERENCE_DIR))
+HAS_REFERENCE = (REFERENCE_DIR / "core.py").exists()
+if HAS_REFERENCE:
+    sys.path.insert(0, str(REFERENCE_DIR))
+
+requires_reference = pytest.mark.skipif(
+    not HAS_REFERENCE, reason=f"Reference scripts not found at {REFERENCE_DIR}"
+)
 
 from sigdiscovpy.simulation.config.presets import SimulationPresets
 from sigdiscovpy.simulation.expression.vst import (
@@ -38,6 +44,7 @@ from sigdiscovpy.simulation.runner import UnifiedSimulation
 # =============================================================================
 
 
+@requires_reference
 class TestCalculateLambda:
     """Test that lambda calculation matches reference."""
 
@@ -58,9 +65,9 @@ class TestCalculateLambda:
         solver = DiffusionSolver(config)
         pkg_lambda = solver.calculate_lambda(n_receivers, p_r)
 
-        assert np.isclose(ref_lambda, pkg_lambda, atol=1e-10), (
-            f"Lambda mismatch: ref={ref_lambda}, pkg={pkg_lambda}"
-        )
+        assert np.isclose(
+            ref_lambda, pkg_lambda, atol=1e-10
+        ), f"Lambda mismatch: ref={ref_lambda}, pkg={pkg_lambda}"
 
     def test_lambda_with_p_r(self):
         """Lambda with effective density (p_r < 1)."""
@@ -82,6 +89,7 @@ class TestCalculateLambda:
         assert np.isclose(ref_lambda, pkg_lambda, atol=1e-10)
 
 
+@requires_reference
 class TestConcentrationField:
     """Test that concentration field matches reference."""
 
@@ -97,18 +105,25 @@ class TestConcentrationField:
         # Generate positions
         angles = np.random.rand(n_total) * 2 * np.pi
         radii = np.sqrt(np.random.rand(n_total)) * max_radius
-        positions = np.column_stack([center[0] + radii * np.cos(angles),
-                                      center[1] + radii * np.sin(angles)])
+        positions = np.column_stack(
+            [center[0] + radii * np.cos(angles), center[1] + radii * np.sin(angles)]
+        )
 
         # Sender at center
         sender_pos = np.array([[0.0, 0.0]])
         sender_expr = np.array([10.0])
 
-        n_density = 100 / (np.pi * max_radius ** 2)
+        n_density = 100 / (np.pi * max_radius**2)
 
         ref_conc, ref_lambda = ref.solve_concentration_field_MM(
-            sender_pos, sender_expr, positions, n_density,
-            D=100.0, k_max=10.0, Kd=30.0, active_threshold=1.0
+            sender_pos,
+            sender_expr,
+            positions,
+            n_density,
+            D=100.0,
+            k_max=10.0,
+            Kd=30.0,
+            active_threshold=1.0,
         )
 
         # Test our runner's _solve_single method
@@ -121,11 +136,12 @@ class TestConcentrationField:
         )
 
         assert np.isclose(ref_lambda, pkg_lambda, atol=1e-10)
-        assert np.allclose(ref_conc, pkg_conc, atol=1e-10), (
-            f"Max diff: {np.max(np.abs(ref_conc - pkg_conc))}"
-        )
+        assert np.allclose(
+            ref_conc, pkg_conc, atol=1e-10
+        ), f"Max diff: {np.max(np.abs(ref_conc - pkg_conc))}"
 
 
+@requires_reference
 class TestINDRing:
     """Test I_ND ring computation matches reference."""
 
@@ -152,8 +168,7 @@ class TestINDRing:
         bandwidth = 100.0
 
         ref_ind, ref_conn = ref.compute_IND_ring(
-            sender_idx, receiver_idx, positions,
-            factor_expr, response_expr, distance, bandwidth
+            sender_idx, receiver_idx, positions, factor_expr, response_expr, distance, bandwidth
         )
 
         from sigdiscovpy.simulation.analysis.ind_computer import INDComputer
@@ -164,16 +179,16 @@ class TestINDRing:
         )
         computer = INDComputer(config)
         pkg_ind, pkg_conn = computer._compute_simple(
-            sender_idx, receiver_idx, positions,
-            factor_expr, response_expr, distance
+            sender_idx, receiver_idx, positions, factor_expr, response_expr, distance
         )
 
-        assert np.isclose(ref_ind, pkg_ind, atol=1e-10), (
-            f"Ring I_ND mismatch: ref={ref_ind}, pkg={pkg_ind}"
-        )
+        assert np.isclose(
+            ref_ind, pkg_ind, atol=1e-10
+        ), f"Ring I_ND mismatch: ref={ref_ind}, pkg={pkg_ind}"
         assert ref_conn == pkg_conn
 
 
+@requires_reference
 class TestINDGaussianAnnular:
     """Test I_ND gaussian_annular computation matches reference."""
 
@@ -201,29 +216,37 @@ class TestINDGaussianAnnular:
         sigma_fraction = 3.0
 
         ref_ind, ref_conn = ref.compute_IND_gaussian_annular(
-            sender_idx, receiver_idx, positions,
-            factor_expr, response_expr, outer_radius, bandwidth, sigma_fraction
+            sender_idx,
+            receiver_idx,
+            positions,
+            factor_expr,
+            response_expr,
+            outer_radius,
+            bandwidth,
+            sigma_fraction,
         )
 
         from sigdiscovpy.simulation.analysis.ind_computer import INDComputer
         from sigdiscovpy.simulation.config.dataclasses import AnalysisConfig, WeightType
 
         config = AnalysisConfig(
-            bandwidth=bandwidth, weight_type=WeightType.GAUSSIAN_ANNULAR,
-            use_sigdiscov_core=False, sigma_fraction=sigma_fraction,
+            bandwidth=bandwidth,
+            weight_type=WeightType.GAUSSIAN_ANNULAR,
+            use_sigdiscov_core=False,
+            sigma_fraction=sigma_fraction,
         )
         computer = INDComputer(config)
         pkg_ind, pkg_conn = computer._compute_simple(
-            sender_idx, receiver_idx, positions,
-            factor_expr, response_expr, outer_radius
+            sender_idx, receiver_idx, positions, factor_expr, response_expr, outer_radius
         )
 
-        assert np.isclose(ref_ind, pkg_ind, atol=1e-10), (
-            f"Gaussian annular I_ND mismatch: ref={ref_ind}, pkg={pkg_ind}"
-        )
+        assert np.isclose(
+            ref_ind, pkg_ind, atol=1e-10
+        ), f"Gaussian annular I_ND mismatch: ref={ref_ind}, pkg={pkg_ind}"
         assert ref_conn == pkg_conn
 
 
+@requires_reference
 class TestVSTTransforms:
     """Test VST functions match reference exactly."""
 
@@ -260,9 +283,19 @@ class TestVSTTransforms:
 # =============================================================================
 
 DEMO_PRESETS = [
-    "demo", "demo1", "demo1b", "demo1_stc", "demo1_stc2",
-    "demo2a", "demo2b", "demo2c", "demo3", "demo3b",
-    "demo_det", "demo_det_dec", "demo_vst",
+    "demo",
+    "demo1",
+    "demo1b",
+    "demo1_stc",
+    "demo1_stc2",
+    "demo2a",
+    "demo2b",
+    "demo2c",
+    "demo3",
+    "demo3b",
+    "demo_det",
+    "demo_det_dec",
+    "demo_vst",
 ]
 
 
@@ -305,6 +338,7 @@ class TestPresetSmoke:
 # =============================================================================
 
 
+@requires_reference
 class TestEquivalence:
     """
     Full equivalence tests: reference unified_sim.py vs sigdiscovpy package.
@@ -316,8 +350,9 @@ class TestEquivalence:
         """Run reference unified_sim.py and return I_ND curves."""
         sys.path.insert(0, str(REFERENCE_DIR))
         import importlib
-        if 'unified_sim' in sys.modules:
-            importlib.reload(sys.modules['unified_sim'])
+
+        if "unified_sim" in sys.modules:
+            importlib.reload(sys.modules["unified_sim"])
         import unified_sim as ref_sim
 
         cfg = ref_sim.make_config(preset_name)
@@ -327,10 +362,13 @@ class TestEquivalence:
         cfg.max_radius = 2000.0
 
         # Limit distances
-        d_start = cfg.test_distance_start if cfg.test_distance_start is not None else cfg.BANDWIDTH / 2
+        d_start = (
+            cfg.test_distance_start if cfg.test_distance_start is not None else cfg.BANDWIDTH / 2
+        )
         cfg.test_distance_end = 2000.0
 
         import tempfile
+
         with tempfile.TemporaryDirectory() as tmpdir:
             results = ref_sim.run_experiment(cfg, output_folder=tmpdir, seed=seed)
 
