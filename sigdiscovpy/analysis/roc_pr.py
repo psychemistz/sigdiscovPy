@@ -13,10 +13,10 @@ import pandas as pd
 from scipy.ndimage import uniform_filter1d
 from sklearn.metrics import average_precision_score, roc_auc_score
 
-
 # ============================================================================
 # UTILITIES
 # ============================================================================
+
 
 def smooth_curve(values: np.ndarray, window: int = 5) -> np.ndarray:
     """Smooth a 1D array with a uniform filter."""
@@ -28,6 +28,7 @@ def smooth_curve(values: np.ndarray, window: int = 5) -> np.ndarray:
 # ============================================================================
 # GENE STATISTICS
 # ============================================================================
+
 
 def compute_gene_statistics(
     ind_df: pd.DataFrame,
@@ -65,7 +66,6 @@ def compute_gene_statistics(
     df["abs_I_ND"] = df["I_ND"].abs()
 
     near_mask = df["radius"] <= near_radius
-    dist_mask = df["radius"] >= dist_radius
 
     # Raw aggregations
     overall = df.groupby("gene").agg(
@@ -164,9 +164,7 @@ def compute_gene_statistics(
     # Cascade scores
     range_99 = stats_df["ind_range_smooth"].quantile(0.99)
     stats_df["ind_range_norm"] = (
-        (stats_df["ind_range_smooth"] / range_99).clip(upper=1).fillna(0)
-        if range_99 > 0
-        else 0
+        (stats_df["ind_range_smooth"] / range_99).clip(upper=1).fillna(0) if range_99 > 0 else 0
     )
 
     near_abs_99 = stats_df["near_abs_mean_smooth"].quantile(0.99)
@@ -181,9 +179,7 @@ def compute_gene_statistics(
 
     # Cascade combinations
     stats_df["cascade_up_mult"] = stats_df["ind_range_norm"] * stats_df["up_score_norm"]
-    stats_df["cascade_up_wavg"] = (
-        0.6 * stats_df["ind_range_norm"] + 0.4 * stats_df["up_score_norm"]
-    )
+    stats_df["cascade_up_wavg"] = 0.6 * stats_df["ind_range_norm"] + 0.4 * stats_df["up_score_norm"]
 
     stats_df["cascade_down_mult"] = stats_df["ind_range_norm"] * stats_df["neg_frac_norm"]
     stats_df["cascade_down_wavg"] = (
@@ -201,6 +197,7 @@ def compute_gene_statistics(
 # ============================================================================
 # GROUND TRUTH
 # ============================================================================
+
 
 def prepare_ground_truth(
     de_df: pd.DataFrame,
@@ -224,25 +221,15 @@ def prepare_ground_truth(
     pd.DataFrame
         Ground truth with columns: gene, log2fc, is_de_up, is_de_down, is_de_any.
     """
-    gene_col = next(
-        (c for c in ["names", "gene", "Gene", "symbol"] if c in de_df.columns), None
-    )
-    fc_col = next(
-        (c for c in ["log2fc", "log2FoldChange", "logFC"] if c in de_df.columns), None
-    )
+    gene_col = next((c for c in ["names", "gene", "Gene", "symbol"] if c in de_df.columns), None)
+    fc_col = next((c for c in ["log2fc", "log2FoldChange", "logFC"] if c in de_df.columns), None)
     pval_col = next(
-        (
-            c
-            for c in ["pval_adj", "padj", "FDR", "p_val_adj"]
-            if c in de_df.columns
-        ),
+        (c for c in ["pval_adj", "padj", "FDR", "p_val_adj"] if c in de_df.columns),
         None,
     )
 
     if gene_col is None or fc_col is None or pval_col is None:
-        raise ValueError(
-            f"Could not find required columns. Found: {list(de_df.columns)}"
-        )
+        raise ValueError(f"Could not find required columns. Found: {list(de_df.columns)}")
 
     sig = de_df[pval_col] <= pval_threshold
     up = (de_df[fc_col] >= log2fc_threshold) & sig
@@ -262,6 +249,7 @@ def prepare_ground_truth(
 # ============================================================================
 # EVALUATION
 # ============================================================================
+
 
 def evaluate_condition(
     stats_df: pd.DataFrame,

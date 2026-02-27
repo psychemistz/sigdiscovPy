@@ -69,11 +69,6 @@ def export_for_r(
     except ImportError:
         raise ImportError("anndata is required: pip install anndata")
 
-    try:
-        import scipy.sparse
-    except ImportError:
-        scipy = None
-
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -86,15 +81,15 @@ def export_for_r(
         cell_mask = adata.obs[obs_celltype_key] == cell_type
         logger.info(f"Cells of type '{cell_type}': {cell_mask.sum()}")
     else:
-        logger.warning(
-            f"Column '{obs_celltype_key}' not found. Using all cells."
-        )
+        logger.warning(f"Column '{obs_celltype_key}' not found. Using all cells.")
         cell_mask = pd.Series(True, index=adata.obs.index)
 
     # Filter by treatment if available
     if obs_treatment_key in adata.obs.columns:
         cyto_mask = adata.obs[obs_treatment_key].str.contains(cytokine, case=False, na=False)
-        pbs_mask = adata.obs[obs_treatment_key].str.contains("PBS|control|untreated", case=False, na=False)
+        pbs_mask = adata.obs[obs_treatment_key].str.contains(
+            "PBS|control|untreated", case=False, na=False
+        )
         logger.info(f"Cytokine-treated: {cyto_mask.sum()}, PBS/control: {pbs_mask.sum()}")
     else:
         cyto_mask = pd.Series(True, index=adata.obs.index)
@@ -146,9 +141,7 @@ def export_for_r(
         )
     else:
         logger.warning("No spatial coordinates found. Exporting empty coordinates.")
-        coord_df = pd.DataFrame(
-            {"cell_id": adata_sub.obs_names, "x": 0.0, "y": 0.0}
-        )
+        coord_df = pd.DataFrame({"cell_id": adata_sub.obs_names, "x": 0.0, "y": 0.0})
 
     # Save
     safe_ct = cell_type.replace(" ", "_").replace("/", "-")
