@@ -133,7 +133,10 @@ class INDComputer:
 
         # Step 2: Build weight matrix
         W = self._create_weight_matrix(sender_pos, receiver_pos, radius)
-        n_connections = int(W.sum())
+        if self.config.weight_type == WeightType.GAUSSIAN_ANNULAR:
+            n_connections = int(np.sum(W > 1e-6))
+        else:
+            n_connections = int(W.sum())
 
         if n_connections == 0:
             return 0.0, 0
@@ -161,7 +164,7 @@ class INDComputer:
         """
         Simple I_ND computation (fallback/reference implementation).
 
-        This matches the original unified_simulation.py implementation.
+        Matches the reference core.py compute_IND_ring / compute_IND_gaussian_annular.
         """
         # Global normalization
         mu_f, sigma_f = np.mean(factor_expr), np.std(factor_expr)
@@ -177,13 +180,18 @@ class INDComputer:
         dists = spatial.distance.cdist(sender_pos, receiver_pos)
         W = self._build_simple_weight_matrix(dists, radius)
 
-        # Row-normalize
-        row_sums = W.sum(axis=1, keepdims=True)
-        n_connections = int(W.sum())
+        # Connection counting matches reference:
+        # ring: np.sum(W), gaussian_annular: np.sum(W > 1e-6)
+        if self.config.weight_type == WeightType.GAUSSIAN_ANNULAR:
+            n_connections = int(np.sum(W > 1e-6))
+        else:
+            n_connections = int(np.sum(W))
 
         if n_connections == 0:
             return 0.0, 0
 
+        # Row-normalize
+        row_sums = W.sum(axis=1, keepdims=True)
         row_sums[row_sums == 0] = 1.0
         W_norm = W / row_sums
 
@@ -285,6 +293,15 @@ class INDComputer:
         elif self.config.weight_type == WeightType.GAUSSIAN:
             sigma = self.config.bandwidth
             return np.exp(-0.5 * (dists / sigma) ** 2)
+
+        elif self.config.weight_type == WeightType.GAUSSIAN_ANNULAR:
+            # Reference: sigma = outer_radius / sigma_fraction
+            sigma = radius / self.config.sigma_fraction
+            W = np.exp(-dists**2 / (2 * sigma**2))
+            # Apply annular mask
+            inner_radius = radius - self.config.bandwidth
+            W[(dists <= inner_radius) | (dists > radius)] = 0
+            return W
 
         else:
             raise ValueError(f"Unknown weight type: {self.config.weight_type}")

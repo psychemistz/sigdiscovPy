@@ -116,6 +116,9 @@ class SenderPositionGenerator:
         if self.config.mode == SenderPositionMode.CENTER:
             return {"C": self.center.copy()}
 
+        elif self.config.mode == SenderPositionMode.CENTER_SILENT_DISTRIBUTED:
+            return {"C": self.center.copy()}
+
         elif self.config.mode == SenderPositionMode.FIXED_5:
             return self._generate_fixed_5()
 

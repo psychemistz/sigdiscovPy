@@ -34,7 +34,7 @@ class DiffusionSolver:
     Parameters
     ----------
     config : DiffusionConfig
-        Diffusion parameters (D, k_max, Kd, secretion_rate).
+        Diffusion parameters (D, k_max, Kd, secretion_rate, active_threshold).
 
     Example
     -------
@@ -110,9 +110,9 @@ class DiffusionSolver:
         n_cells = len(cell_positions)
         concentrations = np.zeros(n_cells)
 
-        # Identify active senders (expression > basal threshold)
-        basal_threshold = 0.2
-        active_mask = sender_expression > basal_threshold
+        # Identify active senders (expression > threshold)
+        active_threshold = self.config.active_threshold
+        active_mask = sender_expression > active_threshold
         active_expr = sender_expression[active_mask]
         active_pos = sender_positions[active_mask]
 
@@ -143,27 +143,34 @@ class DiffusionSolver:
         """
         Compute concentration using superposition of point sources.
 
-        Vectorized implementation for efficiency.
+        Matches reference core.py singularity handling:
+        if r < 1e-3: C = Q * 100, else: C = Q * exp(-r/lambda) / sqrt(r)
         """
         n_cells = len(cell_positions)
         concentrations = np.zeros(n_cells)
-
-        # Avoid division by zero at source location
-        min_dist = 1e-3
 
         for _i, (pos, strength) in enumerate(zip(source_positions, source_strengths)):
             source_factor = strength * self.config.secretion_rate
 
             # Vectorized distance computation
             distances = np.linalg.norm(cell_positions - pos, axis=1)
-            distances = np.maximum(distances, min_dist)
 
-            # Green's function: exp(-r/λ) / √r
+            # Reference singularity handling: near-source cap
+            near_mask = distances < 1e-3
+            far_mask = ~near_mask
+
             if np.isfinite(lambda_val):
-                contrib = source_factor * np.exp(-distances / lambda_val) / np.sqrt(distances)
+                contrib = np.zeros(n_cells)
+                contrib[near_mask] = source_factor * 100
+                contrib[far_mask] = (
+                    source_factor
+                    * np.exp(-distances[far_mask] / lambda_val)
+                    / np.sqrt(distances[far_mask])
+                )
             else:
-                # No uptake: 1/r decay
-                contrib = source_factor / distances
+                contrib = np.zeros(n_cells)
+                contrib[near_mask] = source_factor * 100
+                contrib[far_mask] = source_factor / distances[far_mask]
 
             concentrations += contrib
 
@@ -180,16 +187,15 @@ class DiffusionSolver:
         Compute concentration by grouping senders at same position.
 
         More efficient when multiple senders are at the same location.
+        Matches reference core.py singularity handling.
         """
         n_cells = len(cell_positions)
         concentrations = np.zeros(n_cells)
-        min_dist = 1e-3
 
         # Group by unique positions
         unique_positions = {}
         for pos, expr in zip(active_pos, active_expr):
-            # Round to avoid floating point issues
-            pos_key = (round(pos[0], 2), round(pos[1], 2))
+            pos_key = tuple(pos)
             if pos_key not in unique_positions:
                 unique_positions[pos_key] = {"pos": pos, "total_expr": 0.0}
             unique_positions[pos_key]["total_expr"] += expr
@@ -200,12 +206,23 @@ class DiffusionSolver:
             total_factor = pos_data["total_expr"] * self.config.secretion_rate
 
             distances = np.linalg.norm(cell_positions - source_pos, axis=1)
-            distances = np.maximum(distances, min_dist)
+
+            # Reference singularity handling
+            near_mask = distances < 1e-3
+            far_mask = ~near_mask
 
             if np.isfinite(lambda_val):
-                contrib = total_factor * np.exp(-distances / lambda_val) / np.sqrt(distances)
+                contrib = np.zeros(n_cells)
+                contrib[near_mask] = total_factor * 100
+                contrib[far_mask] = (
+                    total_factor
+                    * np.exp(-distances[far_mask] / lambda_val)
+                    / np.sqrt(distances[far_mask])
+                )
             else:
-                contrib = total_factor / distances
+                contrib = np.zeros(n_cells)
+                contrib[near_mask] = total_factor * 100
+                contrib[far_mask] = total_factor / distances[far_mask]
 
             concentrations += contrib
 

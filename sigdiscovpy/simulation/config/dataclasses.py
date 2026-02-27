@@ -19,12 +19,14 @@ class WeightType(Enum):
     RING = "ring"
     GAUSSIAN = "gaussian"
     ANNULAR = "annular"
+    GAUSSIAN_ANNULAR = "gaussian_annular"
 
 
 class SenderPositionMode(Enum):
     """Sender cell position modes."""
 
     CENTER = "center"
+    CENTER_SILENT_DISTRIBUTED = "center_silent_distributed"
     FIXED_5 = "fixed_5"  # Center, West, East, North, South
     RANDOM = "random"
 
@@ -65,11 +67,20 @@ class CellTypeConfig:
         Number of sender cells that don't express (for negative controls).
     receiver_fractions : List[float]
         List of receiver cell fractions to simulate.
+    silent_expr_zero : bool
+        If True, silent senders get 0 expression instead of basal.
+    fix_senders_across_fractions : bool
+        If True, reuse same sender assignments across receiver fractions.
+    receiver_silent_fraction : float
+        Fraction of receivers that are "silent" (non-responding).
     """
 
     n_active_senders: int = 20
     n_silent_senders: int = 0
     receiver_fractions: list[float] = field(default_factory=lambda: [0.1, 0.2, 0.3, 0.5])
+    silent_expr_zero: bool = False
+    fix_senders_across_fractions: bool = False
+    receiver_silent_fraction: float = 0.0
 
 
 @dataclass
@@ -100,25 +111,25 @@ class DiffusionConfig:
     """
     Diffusion model parameters.
 
-    The model uses Green's function solution for steady-state diffusion:
-    c(r) = (A/4πD) * K₀(r/λ) where λ = √(D/k)
-
     Parameters
     ----------
     D : float
-        Diffusion coefficient (μm²/s).
+        Diffusion coefficient (um^2/s).
     k_max : float
         Maximum uptake rate.
     Kd : float
         Dissociation constant for uptake.
     secretion_rate : float
         Expression to concentration scaling factor.
+    active_threshold : float
+        Expression threshold to consider a sender "active". Default 1.0 matches reference.
     """
 
     D: float = 100.0
     k_max: float = 10.0
     Kd: float = 1.0
     secretion_rate: float = 1.0
+    active_threshold: float = 1.0
 
 
 @dataclass
@@ -144,6 +155,14 @@ class ExpressionConfig:
         Lognormal sigma for responding receivers.
     sigma_r_basal : float
         Lognormal sigma for non-responding cells.
+    factor_model : str
+        Factor expression model: deterministic | stochastic | stochastic_ref | bernoulli_mixture
+    response_model : str
+        Response expression model: deterministic | stochastic_hill | bernoulli_constant | bernoulli_hill
+    vst_method : str or None
+        VST normalization method: None | log1p | pearson | shifted_log
+    vst_active_threshold : float
+        Active threshold for VST mode diffusion.
     """
 
     F_basal: float = 0.1
@@ -154,6 +173,10 @@ class ExpressionConfig:
     sigma_f_basal: float = 0.1
     sigma_r: float = 0.1
     sigma_r_basal: float = 0.1
+    factor_model: str = "deterministic"
+    response_model: str = "deterministic"
+    vst_method: Optional[str] = None
+    vst_active_threshold: float = 1.0
 
 
 @dataclass
@@ -173,6 +196,30 @@ class StochasticConfig:
         Fraction of non-sender cells with zero factor expression.
     zero_inflate_response : float
         Fraction of non-receiver cells with zero response expression.
+    p_s : float
+        Bernoulli probability for sender active state (bernoulli_mixture model).
+    sigma_f_b : float
+        Lognormal sigma for basal sender expression (bernoulli_mixture model).
+    expr_cv : float
+        Coefficient of variation for stochastic on expression.
+    use_gamma_dist : bool
+        If True, use gamma distribution; else lognormal (stochastic model).
+    sigma_f_basal : float
+        Lognormal sigma for basal cells (stochastic_ref model).
+    p_r : float
+        Fixed receiver response probability (bernoulli_constant model).
+    sigma_r_b : float
+        Lognormal sigma for non-responding receivers (bernoulli models).
+    p_r_max : float
+        Maximum receiver probability (bernoulli_hill model).
+    K_p : float
+        Concentration at half-maximal probability (bernoulli_hill model).
+    hill_n : float
+        Hill coefficient for bernoulli_hill model.
+    p_respond_max : float
+        Maximum response probability (stochastic_hill model).
+    response_hill_coef : float
+        Hill coefficient for stochastic_hill response model.
     """
 
     p_sender_express: float = 0.9
@@ -180,6 +227,24 @@ class StochasticConfig:
     hill_coefficient: float = 1.0
     zero_inflate_factor: float = 0.0
     zero_inflate_response: float = 0.0
+    # bernoulli_mixture params
+    p_s: float = 1.0
+    sigma_f_b: float = 0.1
+    # stochastic params
+    expr_cv: float = 0.5
+    use_gamma_dist: bool = True
+    # stochastic_ref params
+    sigma_f_basal: float = 0.1
+    # bernoulli_constant params
+    p_r: float = 1.0
+    sigma_r_b: float = 0.1
+    # bernoulli_hill params
+    p_r_max: float = 1.0
+    K_p: float = 10.0
+    hill_n: float = 1.0
+    # stochastic_hill params
+    p_respond_max: float = 0.9
+    response_hill_coef: float = 1.0
 
 
 @dataclass
@@ -199,6 +264,12 @@ class AnalysisConfig:
         Width of annular ring for annular weights.
     use_sigdiscov_core : bool
         Whether to use sigdiscovpy core functions (recommended).
+    ind_uses_active_receivers_only : bool
+        If True, only active (non-silent) receivers are used for I_ND.
+    sigma_fraction : float
+        Sigma = outer_radius / sigma_fraction for gaussian_annular weights.
+    ind_methods : List[str]
+        List of I_ND methods to compute (ring, gaussian_annular).
     """
 
     radii: list[float] = field(default_factory=lambda: list(np.arange(50, 5001, 50)))
@@ -206,6 +277,9 @@ class AnalysisConfig:
     weight_type: WeightType = WeightType.RING
     annular_width: float = 50.0
     use_sigdiscov_core: bool = True
+    ind_uses_active_receivers_only: bool = False
+    sigma_fraction: float = 3.0
+    ind_methods: list[str] = field(default_factory=lambda: ["ring"])
 
 
 def _convert_to_native(obj: Any) -> Any:
