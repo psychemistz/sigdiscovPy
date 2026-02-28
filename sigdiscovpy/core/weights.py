@@ -529,9 +529,7 @@ def create_grid_weights(
     for dr in range(max_radius):
         # Spatial upper triangle: dr>0 allows all dc; dr==0 only dc>=0
         dc_range = (
-            range(0, 2 * max_radius)
-            if dr == 0
-            else range(-(2 * max_radius - 1), 2 * max_radius)
+            range(0, 2 * max_radius) if dr == 0 else range(-(2 * max_radius - 1), 2 * max_radius)
         )
         for dc in dc_range:
             dc_abs = abs(dc)
@@ -547,10 +545,7 @@ def create_grid_weights(
             target_r = rows_int + dr
             target_c = cols_int + dc
             j_arr = np.array(
-                [
-                    coord_to_idx.get((int(target_r[i]), int(target_c[i])), -1)
-                    for i in range(n)
-                ],
+                [coord_to_idx.get((int(target_r[i]), int(target_c[i])), -1) for i in range(n)],
                 dtype=np.int64,
             )
             mask = j_arr >= 0
@@ -579,9 +574,7 @@ def create_grid_weights(
         all_rows = np.concatenate(row_lists)
         all_cols = np.concatenate(col_lists)
         all_vals = np.concatenate(val_lists)
-        W = sp_sparse.csr_matrix(
-            (all_vals, (all_rows, all_cols)), shape=(n, n), dtype=np.float64
-        )
+        W = sp_sparse.csr_matrix((all_vals, (all_rows, all_cols)), shape=(n, n), dtype=np.float64)
     else:
         W = sp_sparse.csr_matrix((n, n), dtype=np.float64)
 
