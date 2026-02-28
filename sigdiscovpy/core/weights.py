@@ -459,6 +459,135 @@ def create_directional_weights(
     return W
 
 
+def create_grid_weights(
+    spot_coords: np.ndarray,
+    max_radius: int = 3,
+    same_spot: bool = False,
+    platform: str = "visium",
+) -> sp_sparse.csr_matrix:
+    """
+    Create grid-based weight matrix for structured spatial platforms.
+
+    Uses rectangular grid neighbor filtering with Gaussian distance decay,
+    matching the sigdiscov R package's weight_type="grid" behavior.
+
+    Parameters
+    ----------
+    spot_coords : np.ndarray
+        Integer [row, col] coordinates from parse_spot_names(), shape (n, 2).
+    max_radius : int, default=3
+        Grid-unit radius. Neighbors within row_offset < max_radius and
+        col_offset < 2*max_radius are included.
+    same_spot : bool, default=False
+        Whether to include self-connections (diagonal).
+    platform : str, default="visium"
+        Platform type: "visium" (hex grid) or "old" (square grid).
+
+    Returns
+    -------
+    scipy.sparse.csr_matrix
+        Weight matrix of shape (n, n), float64.
+    """
+    spot_coords = np.asarray(spot_coords)
+    n = spot_coords.shape[0]
+    rows_int = spot_coords[:, 0].astype(np.int64)
+    cols_int = spot_coords[:, 1].astype(np.int64)
+
+    # Step 1: Build distance lookup table (max_radius x 2*max_radius)
+    # Matches R cpp_create_distance() with hardcoded sigma=100
+    dr_idx = np.arange(max_radius, dtype=np.float64)
+    dc_idx = np.arange(2 * max_radius, dtype=np.float64)
+
+    if platform == "visium":
+        DIST = 100.0
+        SHIFT = 0.5 * np.sqrt(3.0)
+        x = 0.5 * dc_idx[np.newaxis, :] * DIST
+        y = dr_idx[:, np.newaxis] * SHIFT * DIST
+    elif platform == "old":
+        DIST = 200.0
+        SHIFT = 0.5
+        x = 0.5 * dc_idx[np.newaxis, :] * DIST
+        y = dr_idx[:, np.newaxis] * SHIFT * DIST
+    else:
+        raise ValueError(f"Unknown platform: {platform!r}. Use 'visium' or 'old'.")
+
+    # Gaussian decay: exp(-(d/100)^2 / 2) = exp(-d^2 / 20000)
+    dist_table = np.exp(-(x * x + y * y) / 20000.0)
+
+    if not same_spot:
+        dist_table[0, 0] = 0.0
+
+    # Step 2: Build sparse matrix via offset-based neighbor lookup
+    coord_to_idx = {}
+    for i in range(n):
+        coord_to_idx[(int(rows_int[i]), int(cols_int[i]))] = i
+
+    row_lists = []
+    col_lists = []
+    val_lists = []
+
+    for dr in range(max_radius):
+        # Spatial upper triangle: dr>0 allows all dc; dr==0 only dc>=0
+        dc_range = (
+            range(0, 2 * max_radius)
+            if dr == 0
+            else range(-(2 * max_radius - 1), 2 * max_radius)
+        )
+        for dc in dc_range:
+            dc_abs = abs(dc)
+            if dc_abs >= 2 * max_radius:
+                continue
+            w = float(dist_table[dr, dc_abs])
+            if w == 0.0:
+                continue
+
+            is_diag = dr == 0 and dc == 0
+
+            # Find all spots whose target neighbor exists
+            target_r = rows_int + dr
+            target_c = cols_int + dc
+            j_arr = np.array(
+                [
+                    coord_to_idx.get((int(target_r[i]), int(target_c[i])), -1)
+                    for i in range(n)
+                ],
+                dtype=np.int64,
+            )
+            mask = j_arr >= 0
+            if not np.any(mask):
+                continue
+
+            i_arr = np.where(mask)[0]
+            j_arr = j_arr[mask]
+
+            if is_diag:
+                # Diagonal: store 2*w (matching R convention)
+                row_lists.append(i_arr)
+                col_lists.append(i_arr)
+                val_lists.append(np.full(len(i_arr), 2.0 * w))
+            else:
+                # Off-diagonal: store w at both (i,j) and (j,i)
+                w_arr = np.full(len(i_arr), w)
+                row_lists.append(i_arr)
+                col_lists.append(j_arr)
+                val_lists.append(w_arr)
+                row_lists.append(j_arr)
+                col_lists.append(i_arr)
+                val_lists.append(w_arr)
+
+    if row_lists:
+        all_rows = np.concatenate(row_lists)
+        all_cols = np.concatenate(col_lists)
+        all_vals = np.concatenate(val_lists)
+        W = sp_sparse.csr_matrix(
+            (all_vals, (all_rows, all_cols)), shape=(n, n), dtype=np.float64
+        )
+    else:
+        W = sp_sparse.csr_matrix((n, n), dtype=np.float64)
+
+    return W
+
+
 def get_weight_sum(W) -> float:
     """Get the total sum of weights in a matrix."""
     if sp_sparse.issparse(W):

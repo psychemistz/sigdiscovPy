@@ -34,6 +34,7 @@ from sigdiscovpy.core.normalization import standardize_matrix, standardize_vecto
 from sigdiscovpy.core.spatial_lag import compute_spatial_lag, compute_spatial_lag_batch
 from sigdiscovpy.core.weights import (
     create_gaussian_weights,
+    create_grid_weights,
     create_ring_weights,
     row_normalize_weights,
 )
@@ -53,6 +54,7 @@ __all__ = [
     "compute_metric_batch",
     # Core - weights
     "create_gaussian_weights",
+    "create_grid_weights",
     "create_ring_weights",
     "row_normalize_weights",
     # Core - spatial lag
